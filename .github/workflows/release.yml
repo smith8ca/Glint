@@ -2,6 +2,7 @@
 name: Release
 
 # main → next patch tag vX.Y.Z, images :vX.Y.Z and :latest, GitHub Release
+#        (skipped when the pushed commit already carries a vX.Y.Z tag)
 # dev  → image :dev
 # Images are published to GitHub Container Registry (ghcr.io/<owner>/<repo>).
 on:
@@ -19,9 +20,33 @@ jobs:
   ci:
     uses: ./.github/workflows/ci.yml
 
+  # A push to main that adds no new commit (for example a fast-forward to a
+  # commit that was already released) must not cut another patch release.
+  check:
+    name: Check release tag
+    runs-on: ubuntu-latest
+    outputs:
+      released: ${{ steps.tag.outputs.released }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # tags are needed to see whether HEAD is released
+
+      - name: Look for a release tag on HEAD
+        id: tag
+        run: |
+          EXISTING=$(git tag --points-at HEAD -l 'v[0-9]*.[0-9]*.[0-9]*' | sort -V | tail -1)
+          if [ "$GITHUB_REF_NAME" = "main" ] && [ -n "$EXISTING" ]; then
+            echo "released=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::$GITHUB_SHA is already released as $EXISTING; skipping publish."
+          else
+            echo "released=false" >> "$GITHUB_OUTPUT"
+          fi
+
   publish:
     name: Publish
-    needs: ci
+    needs: [ci, check]
+    if: needs.check.outputs.released != 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: write # create tags and releases

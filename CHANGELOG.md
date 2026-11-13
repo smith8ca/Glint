@@ -12,6 +12,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - GitHub Actions upgraded to their Node 24 releases (`actions/checkout`, `setup-node` and `upload-artifact` v7; `docker/build-push-action` v7; `docker/setup-buildx-action`, `login-action` and `setup-qemu-action` v4), clearing the Node 20 deprecation warnings
+- `ci.yml` no longer runs on branch pushes, only on pull requests (plus `workflow_dispatch` on demand), so PR branches are checked once instead of twice
+
+### Fixed
+
+- `release.yml` no longer cuts a duplicate patch release when a push to `main` lands on a commit that already has a `vX.Y.Z` tag (as happened with v0.1.15, which is the same commit as v0.1.14)
 
 ---
 
