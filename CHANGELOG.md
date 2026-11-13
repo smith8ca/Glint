@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- GitHub Actions upgraded to their Node 24 releases (`actions/checkout`, `setup-node` and `upload-artifact` v7; `docker/build-push-action` v7; `docker/setup-buildx-action`, `login-action` and `setup-qemu-action` v4), clearing the Node 20 deprecation warnings
+
 ---
 
 ## [0.1.14] - 2026-11-13
