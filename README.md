@@ -10,6 +10,8 @@
 
 A self-hosted GitLab webhook receiver that automatically posts AI-generated code review summaries on merge requests and generates release notes using Claude (Anthropic). Designed for self-hosted GitLab CE (free tier) — no paid GitLab features required.
 
+Full documentation — configuration, deployment, security, API reference and troubleshooting — is in the [project wiki](https://github.com/smith8ca/Glint/wiki).
+
 - [How it works](#how-it-works)
 - [Prerequisites](#prerequisites)
 - [Project structure](#project-structure)
@@ -153,7 +155,7 @@ docker compose logs -f glint   # Follow logs
 docker compose down            # Stop and remove the container
 ```
 
-Configuration is read from `webhook-receiver/.env` at container start — it is never baked into the image. This means `.env` changes take effect with `docker compose up -d` and do **not** require a rebuild. Only changes to the application source code require `--build`.
+The example `docker-compose.yml` sets placeholder values under `environment:`. Replace them, or delete that block and uncomment `env_file:` to read `webhook-receiver/.env` instead — values under `environment:` override `env_file:`, so the placeholders must go. Either way, configuration is passed in at container start and never baked into the image, so changes take effect with `docker compose up -d` and do **not** require a rebuild. Only changes to the application source code require `--build`.
 
 The compose file exposes the server on `$PORT` (default `3000`) and requires an external Docker network named `docker-shared` — create it once if it doesn't already exist:
 
@@ -223,7 +225,7 @@ npm test
 6. The summary is posted back to the mock server as a note
 7. The test prints the captured note body and exits with code `0`
 
-> The e2e test only requires `ANTHROPIC_API_KEY` to be set in `webhook-receiver/.env`.
+> The e2e test needs `ANTHROPIC_API_KEY`, `WEBHOOK_SECRET` and a non-empty `GITLAB_TOKEN` (any value; the mock accepts it) in `webhook-receiver/.env`. It authenticates with the secret token, so comment out `WEBHOOK_SIGNING_TOKEN` while running it.
 
 ## Environment variables
 
@@ -266,7 +268,7 @@ Glint ships pipelines for both GitHub and self-hosted GitLab. They follow the sa
 
 | Workflow                        | Trigger                                 | Result                                                                                                              |
 | ------------------------------- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| `.github/workflows/ci.yml`      | Pull requests, pushes to other branches | Typecheck and compile, Vitest suite with coverage, e2e harness typecheck, Docker build (no push)                    |
+| `.github/workflows/ci.yml`      | Pull requests, manual runs              | Typecheck and compile, Vitest suite with coverage, e2e harness typecheck, Docker build (no push)                    |
 | `.github/workflows/release.yml` | Push to `dev`                           | Runs CI, then pushes `ghcr.io/smith8ca/glint:dev` (`linux/amd64` + `linux/arm64`)                                    |
 | `.github/workflows/release.yml` | Push to `main`                          | Runs CI, bumps the patch version, pushes `:vX.Y.Z` and `:latest`, and creates a GitHub Release with generated notes |
 
