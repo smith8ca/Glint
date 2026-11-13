@@ -11,6 +11,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.1.16] - 2026-11-13
+
+### Changed
+
+- GitHub Actions upgraded to their Node 24 releases (`actions/checkout`, `setup-node` and `upload-artifact` v7; `docker/build-push-action` v7; `docker/setup-buildx-action`, `login-action` and `setup-qemu-action` v4), clearing the Node 20 deprecation warnings
+- `ci.yml` no longer runs on branch pushes, only on pull requests (plus `workflow_dispatch` on demand), so PR branches are checked once instead of twice
+
+### Fixed
+
+- `release.yml` no longer cuts a duplicate patch release when a push to `main` lands on a commit that already has a `vX.Y.Z` tag (as happened with v0.1.15, which is the same commit as v0.1.14)
+
+---
+
+## [0.1.15] - 2026-11-13
+
+No changes. Same commit as 0.1.14, published by the duplicate-release bug fixed in 0.1.16.
+
+---
+
 ## [0.1.14] - 2026-11-13
 
 First public release. Includes the changes from the private 0.1.12–0.1.14 releases.
@@ -174,5 +193,7 @@ Released as a series of automated patch versions (v0.1.2 through v0.1.6) via the
 
 ---
 
-[Unreleased]: https://github.com/smith8ca/Glint/compare/v0.1.14...HEAD
+[Unreleased]: https://github.com/smith8ca/Glint/compare/v0.1.16...HEAD
+[0.1.16]: https://github.com/smith8ca/Glint/compare/v0.1.15...v0.1.16
+[0.1.15]: https://github.com/smith8ca/Glint/releases/tag/v0.1.15
 [0.1.14]: https://github.com/smith8ca/Glint/releases/tag/v0.1.14

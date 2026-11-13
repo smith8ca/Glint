@@ -1,13 +1,13 @@
 ---
 name: CI
 
-# Runs on pull requests and feature branches. Pushes to main and dev run the
-# same jobs via release.yml (workflow_call) before publishing.
+# Runs on pull requests. Pushes to main and dev run the same jobs via
+# release.yml (workflow_call) before publishing. Branch pushes have no trigger
+# of their own, so a PR branch is checked once rather than twice.
 on:
   pull_request:
-  push:
-    branches-ignore: [main, dev]
   workflow_call:
+  workflow_dispatch: # run on demand for a branch without a PR
 
 permissions:
   contents: read
@@ -17,7 +17,7 @@ jobs:
     name: Secret scan
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0 # full history, so every commit is scanned
 
@@ -44,9 +44,9 @@ jobs:
       run:
         working-directory: webhook-receiver
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
@@ -63,7 +63,7 @@ jobs:
 
       - name: Upload coverage report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: coverage
           path: webhook-receiver/coverage/lcov.info
@@ -77,9 +77,9 @@ jobs:
       run:
         working-directory: e2e-test
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
@@ -95,12 +95,12 @@ jobs:
     name: Docker build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: docker/setup-buildx-action@v3
+      - uses: docker/setup-buildx-action@v4
 
       - name: Build image (no push)
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: ./webhook-receiver
           push: false
