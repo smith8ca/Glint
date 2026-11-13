@@ -1,0 +1,29 @@
+{
+  "name": "e2e-test",
+  "version": "1.0.0",
+  "description": "End-to-end tests for the GitLab MR webhook receiver",
+  "author": "Chuckworks Engineering",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "npm run build && cd ../webhook-receiver && npm run build && cd ../e2e-test && node dist/index.js",
+    "dev": "ts-node src/index.ts"
+  },
+  "dependencies": {
+    "axios": "^1.7.0",
+    "dotenv": "^16.4.0",
+    "express": "^4.21.0"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^22.0.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.0"
+  },
+  "overrides": {
+    "qs": "^6.16.2"
+  }
+}

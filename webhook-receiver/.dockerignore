@@ -1,0 +1,13 @@
+# Dependencies and build output — rebuilt inside the image
+node_modules
+dist
+
+# Secrets — never bake into the image
+.env
+.env.*
+!.env.example
+
+# Source only needed at build time (copied in builder stage)
+# These are intentionally NOT excluded so the builder stage can use them
+# src/
+# tsconfig.json

@@ -1,0 +1,41 @@
+# Node.js / npm
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# TypeScript build output
+dist/
+*.js.map
+
+# Environment files
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Editor and OS files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+!.vscode/extensions.json
+
+# Runtime and temp
+*.log
+logs/
+tmp/
+.cache/
+
+# Coverage reports
+coverage/
+docker-compose.local.yml
+
+# Claude Code local settings
+.claude/
+
+# Claude Code project instructions (local only)
+CLAUDE.md
+
+# Kiro steering docs (local only)
+.kiro/

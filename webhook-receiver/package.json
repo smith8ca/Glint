@@ -1,0 +1,36 @@
+{
+  "name": "webhook-receiver",
+  "version": "1.0.0",
+  "description": "GitLab MR webhook receiver that posts AI-generated summaries",
+  "author": "Chuckworks Engineering",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node src/index.ts",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.36.0",
+    "axios": "^1.7.0",
+    "dotenv": "^16.4.0",
+    "express": "^4.21.0"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^22.0.0",
+    "@types/supertest": "^6.0.0",
+    "@vitest/coverage-v8": "^2.0.0",
+    "supertest": "^7.0.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.0",
+    "vitest": "^2.0.0"
+  },
+  "overrides": {
+    "qs": "^6.16.2"
+  }
+}

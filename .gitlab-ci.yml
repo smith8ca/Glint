@@ -1,0 +1,197 @@
+---
+workflow:
+  rules:
+    - if: $CI_COMMIT_BRANCH
+    - if: $CI_COMMIT_TAG
+
+variables:
+  GIT_DEPTH: "0" # Full history required for git tag listing in the release job
+  IMAGE_NAME: $CI_REGISTRY_IMAGE/glint
+  SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"
+
+stages:
+  - test
+  - secret-detection
+  - build
+  - publish
+
+include:
+  - template: Security/SAST.gitlab-ci.yml
+  - template: Security/Secret-Detection.gitlab-ci.yml
+
+# ─── Test Stage ──────────────────────────────────────────────────────────────
+
+sast:
+  stage: test
+  tags:
+    - docker
+
+# ─── Secret Detection Stage ──────────────────────────────────────────────────
+
+secret_detection:
+  stage: secret-detection
+  tags:
+    - docker
+
+# ─── Build Stage ─────────────────────────────────────────────────────────────
+# Runs on a Docker executor — only pulls node:22-alpine from Docker Hub,
+# so the self-signed GitLab cert is not involved here.
+
+typecheck:
+  stage: build
+  image: node:22-alpine
+  cache:
+    key:
+      files:
+        - webhook-receiver/package-lock.json
+    paths:
+      - webhook-receiver/node_modules/
+  before_script:
+    - cd webhook-receiver
+    - npm ci
+  script:
+    - npm run build
+  artifacts:
+    paths:
+      - webhook-receiver/dist/
+    expire_in: 1 hour
+
+unit-test:
+  stage: build
+  image: node:22-alpine
+  cache:
+    key:
+      files:
+        - webhook-receiver/package-lock.json
+    paths:
+      - webhook-receiver/node_modules/
+  before_script:
+    - cd webhook-receiver
+    - npm ci
+  script:
+    - npm run test:coverage
+  artifacts:
+    paths:
+      - webhook-receiver/coverage/lcov.info
+    expire_in: 1 day
+    when: always
+
+sonar-scan:
+  stage: build
+  needs:
+    - job: unit-test
+      artifacts: true
+  image:
+    name: sonarsource/sonar-scanner-cli:11
+    entrypoint: [""]
+  before_script: []
+  variables:
+    SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"
+    GIT_DEPTH: "0"
+  cache:
+    policy: pull-push
+    key: "sonar-cache-$CI_COMMIT_REF_SLUG"
+    paths:
+      - "${SONAR_USER_HOME}/cache"
+      - sonar-scanner/
+  script:
+    - echo "Setting up self-signed certificate trust..."
+    - mkdir -p ${SONAR_USER_HOME}/ssl
+    # Derive the SonarQube hostname from the SONAR_HOST_URL CI/CD variable
+    - SONAR_HOSTNAME=$(echo "$SONAR_HOST_URL" | sed -E 's#^https?://([^/:]+).*#\1#')
+    - openssl s_client -showcerts -connect "${SONAR_HOSTNAME}:443" -servername "$SONAR_HOSTNAME" < /dev/null 2>/dev/null | openssl x509 -outform PEM > sonarqube.pem
+    - keytool -noprompt -importcert -storetype PKCS12 -alias sonarqube -keystore $SONAR_USER_HOME/ssl/truststore.p12 -storepass changeit -file sonarqube.pem
+    # SONAR_PROJECT_KEY (optional CI/CD variable) overrides sonar.projectKey from sonar-project.properties
+    - sonar-scanner -Dsonar.qualitygate.wait=true -Dsonar.scanner.truststorePassword=changeit ${SONAR_PROJECT_KEY:+-Dsonar.projectKey=$SONAR_PROJECT_KEY}
+  allow_failure: true
+  tags:
+    - docker
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+    - if: $CI_COMMIT_BRANCH == 'main'
+    - if: $CI_COMMIT_BRANCH == 'dev'
+
+# ─── Publish Stage ───────────────────────────────────────────────────────────
+# Uses shell runners to avoid docker-in-docker entirely.
+# The self-signed GitLab registry cert is trusted via CI_SERVER_TLS_CA_FILE,
+# which GitLab populates automatically when the runner is registered with the
+# CA cert (see: Settings > CI/CD > Runners, or runner config tls-ca-file).
+#
+# NOTE: The self-signed GitLab registry cert must be trusted on each runner
+# host via /etc/docker/daemon.json insecure-registries. The gitlab-runner
+# user does not have permission to write to /etc/docker/certs.d/ at runtime.
+# One-time setup per runner host:
+#   echo '{"insecure-registries":["<gitlab-host>"]}' | sudo tee /etc/docker/daemon.json
+#   sudo systemctl restart docker
+#
+# NOTE: Images are built natively on the runner's architecture.
+# On Raspberry Pi runners this produces linux/arm64 images.
+
+.publish_base:
+  stage: publish
+  tags:
+    - shell
+  needs: [typecheck]
+  before_script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+
+release:
+  # Computes the next patch version from the latest semver tag and creates it
+  # via the GitLab API, which triggers a tag pipeline to build and publish the
+  # versioned image. Requires RELEASE_TOKEN (project access token,
+  # write_repository + api scopes) set as a CI/CD variable.
+  stage: publish
+  tags:
+    - shell
+  needs: [typecheck]
+  script:
+    - LATEST=$(git tag -l 'v[0-9]*.[0-9]*.[0-9]*' | sort -V | tail -1)
+    - LATEST=${LATEST:-v0.0.0}
+    - MAJOR=$(echo ${LATEST#v} | cut -d. -f1)
+    - MINOR=$(echo ${LATEST#v} | cut -d. -f2)
+    - PATCH=$(echo ${LATEST#v} | cut -d. -f3)
+    - NEW_TAG="v${MAJOR}.${MINOR}.$((PATCH + 1))"
+    - echo "Cutting release $NEW_TAG"
+    - |
+      curl --fail-with-body -sk -X POST \
+        -H "PRIVATE-TOKEN: $RELEASE_TOKEN" \
+        "$CI_API_V4_URL/projects/$CI_PROJECT_ID/repository/tags" \
+        -F "tag_name=${NEW_TAG}" \
+        -F "ref=$CI_COMMIT_SHA"
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+
+publish:dev:
+  extends: .publish_base
+  script:
+    - docker build -t "$IMAGE_NAME:dev" ./webhook-receiver
+    - docker push "$IMAGE_NAME:dev"
+  environment:
+    name: dev
+    url: $DEVL_URL
+    deployment_tier: development
+  rules:
+    - if: $CI_COMMIT_BRANCH == "dev"
+
+publish:tag:
+  # Triggered by the release job creating a vX.Y.Z tag.
+  # Publishes the versioned image, updates :latest, and creates a GitLab Release.
+  # The Release Hook fired by GitLab will trigger the Glint webhook receiver to
+  # generate AI release notes and update the release description.
+  extends: .publish_base
+  script:
+    - docker build -t "$IMAGE_NAME:$CI_COMMIT_TAG" -t "$IMAGE_NAME:latest" ./webhook-receiver
+    - docker push "$IMAGE_NAME:$CI_COMMIT_TAG"
+    - docker push "$IMAGE_NAME:latest"
+    - |
+      curl --fail-with-body -sk -X POST \
+        -H "PRIVATE-TOKEN: $RELEASE_TOKEN" \
+        -H "Content-Type: application/json" \
+        "$CI_API_V4_URL/projects/$CI_PROJECT_ID/releases" \
+        -d "{\"tag_name\":\"$CI_COMMIT_TAG\",\"name\":\"Release $CI_COMMIT_TAG\",\"description\":\"Release notes are being generated...\"}"
+  environment:
+    name: production
+    url: $PROD_URL
+    deployment_tier: production
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+/

@@ -1,0 +1,108 @@
+---
+name: CI
+
+# Runs on pull requests and feature branches. Pushes to main and dev run the
+# same jobs via release.yml (workflow_call) before publishing.
+on:
+  pull_request:
+  push:
+    branches-ignore: [main, dev]
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  secrets:
+    name: Secret scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # full history, so every commit is scanned
+
+      # Uses the release binary rather than gitleaks-action, which needs a
+      # licence key for organisation-owned repositories.
+      - name: Install gitleaks
+        env:
+          VERSION: 8.30.1
+          SHA256: 551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
+        run: |
+          archive="gitleaks_${VERSION}_linux_x64.tar.gz"
+          curl -sSfLO "https://github.com/gitleaks/gitleaks/releases/download/v${VERSION}/${archive}"
+          echo "${SHA256}  ${archive}" | sha256sum --check --strict
+          tar -xzf "${archive}" gitleaks
+          sudo mv gitleaks /usr/local/bin/
+
+      - name: Scan for secrets
+        run: gitleaks git --redact --verbose .
+
+  test:
+    name: Build and test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: webhook-receiver
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: webhook-receiver/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck and compile
+        run: npm run build
+
+      - name: Unit tests with coverage
+        run: npm run test:coverage
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: webhook-receiver/coverage/lcov.info
+          if-no-files-found: ignore
+          retention-days: 7
+
+  e2e-typecheck:
+    name: Typecheck e2e harness
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: e2e-test
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: e2e-test/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+  docker:
+    name: Docker build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build image (no push)
+        uses: docker/build-push-action@v6
+        with:
+          context: ./webhook-receiver
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

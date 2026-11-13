@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <defs>
+    <filter id="glow-i" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="glow-i-strong" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="5" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- No background — transparent -->
+
+  <!-- Scale and center the icon mark within 256x256 -->
+  <!-- Original: trunk from (256,90) to (256,422) = 332px tall, centered x=256 -->
+  <!-- Target: fill 256x256 with some padding. Use padding=16, so 224px tall. Scale = 224/332 = 0.675 -->
+  <!-- Center at (128, 128). Trunk goes from y = 128-112 = 16 to y = 128+112 = 240 -->
+  <!-- Branch-out at original y=172 -> relative y = (172-256)*0.675 = -56.7 -> icon y = 128-56.7 = 71 -->
+  <!-- Merge-in at original y=340 -> relative y = (340-256)*0.675 = 56.7 -> icon y = 128+56.7 = 185 -->
+  <!-- Arc midpoint x: original 358-256 = 102, scaled = 102*0.675 = 68.85, icon x = 128+68.85 = 197 -->
+
+  <g transform="translate(128, 128) scale(0.675)">
+    <!-- Orange vertical trunk line -->
+    <line x1="0" y1="-166" x2="0" y2="166" stroke="#FC6D26" stroke-width="9" stroke-linecap="round"/>
+
+    <!-- Orange commit dot at branch-out (y=-84) -->
+    <circle cx="0" cy="-84" r="19" fill="#FC6D26" filter="url(#glow-i)"/>
+
+    <!-- Orange commit dot at merge-in (y=84) -->
+    <circle cx="0" cy="84" r="19" fill="#FC6D26" filter="url(#glow-i)"/>
+
+    <!-- Purple feature branch arc -->
+    <path d="M 0 -84 C 144 -84 144 84 0 84" fill="none" stroke="#A855F7" stroke-width="9" stroke-linecap="round" filter="url(#glow-i)"/>
+
+    <!-- Purple commit dot at arc midpoint (102, 0) -->
+    <circle cx="102" cy="0" r="14" fill="#A855F7" filter="url(#glow-i)"/>
+
+    <!-- Gold 4-point sparkle at merge point (0, 84) -->
+    <g transform="translate(0, 84)" filter="url(#glow-i-strong)">
+      <polygon points="0,-28 7,-7 28,0 7,7 0,28 -7,7 -28,0 -7,-7" fill="#F59E0B"/>
+      <circle cx="0" cy="0" r="5" fill="#FDE68A"/>
+    </g>
+  </g>
+</svg>

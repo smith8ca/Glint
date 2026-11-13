@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <defs>
+    <filter id="glow-f" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="1.5" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Orange vertical trunk line -->
+  <line x1="32" y1="10" x2="32" y2="54" stroke="#FC6D26" stroke-width="4" stroke-linecap="round"/>
+
+  <!-- Orange commit dot at branch-out (y=21) -->
+  <circle cx="32" cy="21" r="7" fill="#FC6D26"/>
+
+  <!-- Orange commit dot at merge-in (y=43) -->
+  <circle cx="32" cy="43" r="7" fill="#FC6D26"/>
+
+  <!-- Purple feature branch arc -->
+  <path d="M 32 21 C 50 21 50 43 32 43" fill="none" stroke="#A855F7" stroke-width="4" stroke-linecap="round" filter="url(#glow-f)"/>
+
+  <!-- Purple dot at arc midpoint (~44, 32) -->
+  <circle cx="44" cy="32" r="5" fill="#A855F7" filter="url(#glow-f)"/>
+
+  <!-- Gold 4-point sparkle at merge point (32, 43) -->
+  <g transform="translate(32, 43)">
+    <polygon points="
+      0,-7
+      1.75,-1.75
+      7,0
+      1.75,1.75
+      0,7
+      -1.75,1.75
+      -7,0
+      -1.75,-1.75
+    " fill="#F59E0B"/>
+  </g>
+</svg>

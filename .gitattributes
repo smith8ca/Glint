@@ -1,0 +1,2 @@
+# Git hooks run under sh; CRLF line endings break the shebang on Linux and macOS.
+.githooks/* text eol=lf

@@ -1,0 +1,17 @@
+#!/bin/sh
+# Stop the commit if the staged changes contain a secret.
+#
+# Enable once per clone:  git config core.hooksPath .githooks
+# Skip once (not recommended): git commit --no-verify
+#
+# --staged scans only what is about to be committed, so ignored local files
+# such as .env are never read. --redact keeps secret values out of the output.
+
+if ! command -v gitleaks >/dev/null 2>&1; then
+  echo "pre-commit: gitleaks is not installed, so the secret scan cannot run." >&2
+  echo "  Install it: https://github.com/gitleaks/gitleaks#installing" >&2
+  echo "  Or skip this once with: git commit --no-verify" >&2
+  exit 1
+fi
+
+exec gitleaks git --pre-commit --staged --redact --verbose

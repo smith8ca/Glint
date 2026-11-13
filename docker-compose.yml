@@ -1,0 +1,43 @@
+---
+networks:
+  default:
+    external: true
+    name: docker-shared
+
+services:
+  glint:
+    # Build locally, or replace with your published image, e.g.:
+    # image: ghcr.io/smith8ca/glint:latest
+    build: ./webhook-receiver
+    container_name: glint
+    # Recommended: keep credentials in webhook-receiver/.env instead of inline
+    # env_file:
+    #   - ./webhook-receiver/.env
+    environment:
+      # Your self-hosted GitLab instance base URL (no trailing slash)
+      GITLAB_BASE_URL: https://gitlab.example.com
+      # GitLab personal access token with api scope
+      GITLAB_TOKEN: your-gitlab-token-here
+      # Secret token configured in the GitLab webhook settings
+      WEBHOOK_SECRET: your-webhook-secret-here
+      # Anthropic API key for Claude
+      ANTHROPIC_API_KEY: your-anthropic-api-key-here
+      # Optional: Claude model to use (default: claude-sonnet-4-6)
+      ANTHROPIC_MODEL: claude-sonnet-4-6
+      # Optional: TLS verification for GitLab API calls (default: true).
+      # Prefer trusting your CA via GITLAB_CA_FILE over disabling this.
+      GITLAB_REJECT_UNAUTHORIZED: "true"
+      # Optional: trust a private/self-signed CA for GitLab (mount it via volumes below)
+      # GITLAB_CA_FILE: /certs/ca.crt
+    healthcheck:
+      interval: 30s
+      retries: 3
+      start_period: 10s
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/health"]
+      timeout: 5s
+    ports:
+      - ${PORT:-3000}:3000
+    restart: unless-stopped
+    # Optional: mount a private CA certificate (read-only)
+    # volumes:
+    #   - /path/to/your/ca.crt:/certs/ca.crt:ro

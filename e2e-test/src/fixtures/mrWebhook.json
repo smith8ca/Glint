@@ -1,0 +1,43 @@
+{
+  "object_kind": "merge_request",
+  "event_type": "merge_request",
+  "user": {
+    "id": 1,
+    "name": "Jane Developer",
+    "username": "janedev",
+    "avatar_url": null
+  },
+  "project": {
+    "id": 1,
+    "name": "example-app",
+    "description": "A sample application",
+    "web_url": "http://localhost/janedev/example-app",
+    "path_with_namespace": "janedev/example-app",
+    "default_branch": "main"
+  },
+  "repository": {
+    "name": "example-app",
+    "url": "git@localhost:janedev/example-app.git",
+    "description": "A sample application",
+    "homepage": "http://localhost/janedev/example-app"
+  },
+  "object_attributes": {
+    "iid": 42,
+    "title": "Add JWT authentication middleware",
+    "description": "Introduces JWT-based authentication for protected API routes. Adds login endpoint, token generation, and a middleware that validates tokens on incoming requests.",
+    "state": "opened",
+    "action": "open",
+    "source_branch": "feature/jwt-auth",
+    "target_branch": "main",
+    "source_project_id": 1,
+    "target_project_id": 1,
+    "author_id": 1,
+    "url": "http://localhost/janedev/example-app/-/merge_requests/42",
+    "merge_status": "can_be_merged",
+    "work_in_progress": false
+  },
+  "labels": [],
+  "changes": {},
+  "assignees": [],
+  "reviewers": []
+}

@@ -1,0 +1,18 @@
+{
+  "id": 1001,
+  "iid": 42,
+  "title": "Add JWT authentication middleware",
+  "description": "Introduces JWT-based authentication for protected API routes. Adds login endpoint, token generation, and a middleware that validates tokens on incoming requests.",
+  "state": "opened",
+  "source_branch": "feature/jwt-auth",
+  "target_branch": "main",
+  "author": {
+    "id": 1,
+    "name": "Jane Developer",
+    "username": "janedev"
+  },
+  "web_url": "http://localhost/janedev/example-app/-/merge_requests/42",
+  "created_at": "2026-03-18T10:00:00.000Z",
+  "updated_at": "2026-03-18T10:00:00.000Z",
+  "merge_status": "can_be_merged"
+}

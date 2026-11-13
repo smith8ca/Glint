@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Glint — Architecture Diagram</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js" integrity="sha384-ZZ1pncU3bQe8y31yfZdMFdSpttDoPmOZg2wguVK9almUodir1PghgT0eY7Mrty8H" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js" integrity="sha384-en/ztfPSRkGfME4KIm05joYXynqzUgbsG5nMrj/xEFAHXkeZfO3yMK8QQ+mP7p1/" crossorigin="anonymous"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #020617;
+      color: #e2e8f0;
+      font-family: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, monospace;
+      min-height: 100vh;
+      padding: 24px;
+    }
+    .container { max-width: 1120px; margin: 0 auto; }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 20px;
+    }
+    .header-left { display: flex; align-items: center; gap: 12px; }
+    .pulse-dot {
+      width: 10px; height: 10px;
+      background: #34d399;
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+      flex-shrink: 0;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(52,211,153,0.4); }
+      50% { opacity: 0.8; box-shadow: 0 0 0 6px rgba(52,211,153,0); }
+    }
+    h1 { font-size: 20px; font-weight: 700; color: #f1f5f9; }
+    .subtitle { font-size: 11px; color: #64748b; margin-top: 3px; }
+    .toolbar { position: relative; }
+    .toolbar-toggle {
+      background: #1e293b; border: 1px solid #334155;
+      color: #94a3b8; border-radius: 6px; padding: 6px 12px;
+      cursor: pointer; font-family: inherit; font-size: 16px;
+    }
+    .toolbar-toggle:hover { background: #334155; }
+    .toolbar-actions {
+      display: none; position: absolute; right: 0; top: 38px;
+      background: #1e293b; border: 1px solid #334155; border-radius: 8px;
+      padding: 8px; gap: 6px; flex-direction: column; min-width: 120px; z-index: 10;
+    }
+    .toolbar-actions.open { display: flex; }
+    .toolbar-btn {
+      background: #0f172a; border: 1px solid #475569; color: #cbd5e1;
+      border-radius: 6px; padding: 6px 10px; cursor: pointer;
+      font-family: inherit; font-size: 11px; text-align: left;
+    }
+    .toolbar-btn:hover { background: #1e293b; color: #f1f5f9; }
+    .diagram-card {
+      background: #0f172a; border: 1px solid #1e293b;
+      border-radius: 12px; padding: 16px; margin-bottom: 18px; overflow-x: auto;
+    }
+    .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 18px; }
+    .card { background: #0f172a; border: 1px solid #1e293b; border-radius: 8px; padding: 14px; }
+    .card-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+    .card-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .card-dot.green { background: #34d399; }
+    .card-dot.amber { background: #fbbf24; }
+    .card-dot.violet { background: #a78bfa; }
+    .card h3 { font-size: 12px; font-weight: 600; color: #f1f5f9; }
+    .card ul { list-style: none; }
+    .card li { font-size: 10px; color: #94a3b8; line-height: 1.85; }
+    .footer { text-align: center; font-size: 10px; color: #475569; padding-top: 6px; border-top: 1px solid #1e293b; padding-bottom: 4px; }
+    @media print { .toolbar { display: none; } }
+  </style>
+</head>
+<body>
+<div class="container" id="report-container">
+
+  <div class="header">
+    <div class="header-left">
+      <div class="pulse-dot"></div>
+      <div>
+        <h1>Glint — System Architecture</h1>
+        <div class="subtitle">Self-hosted GitLab webhook receiver · Claude AI · MR reviews &amp; release notes · Node.js / TypeScript / Docker</div>
+      </div>
+    </div>
+    <div class="toolbar">
+      <button class="toolbar-toggle" onclick="this.nextElementSibling.classList.toggle('open')">⋯</button>
+      <div class="toolbar-actions">
+        <button class="toolbar-btn" onclick="copyAsImage()">📋 Copy</button>
+        <button class="toolbar-btn" onclick="downloadPNG()">🖼️ PNG</button>
+        <button class="toolbar-btn" onclick="downloadPDF()">📄 PDF</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="diagram-card">
+    <svg viewBox="0 0 1060 660" xmlns="http://www.w3.org/2000/svg"
+         role="img" aria-label="Glint system architecture: GitLab webhooks flow through the receiver to the Claude API and back to GitLab"
+         style="width:100%;height:auto;font-family:'JetBrains Mono',monospace;">
+      <defs>
+        <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+          <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1e293b" stroke-width="0.5"/>
+        </pattern>
+        <marker id="arr" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+          <polygon points="0 0, 10 3.5, 0 7" fill="#64748b"/>
+        </marker>
+        <marker id="arr-green" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+          <polygon points="0 0, 10 3.5, 0 7" fill="#34d399"/>
+        </marker>
+        <marker id="arr-amber" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+          <polygon points="0 0, 10 3.5, 0 7" fill="#fbbf24"/>
+        </marker>
+        <marker id="arr-violet" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+          <polygon points="0 0, 10 3.5, 0 7" fill="#a78bfa"/>
+        </marker>
+        <marker id="arr-rose" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+          <polygon points="0 0, 10 3.5, 0 7" fill="#fb7185"/>
+        </marker>
+      </defs>
+
+      <!-- Background -->
+      <rect width="1060" height="660" fill="#020617"/>
+      <rect width="1060" height="660" fill="url(#grid)"/>
+
+      <!-- ═══════════════ ARROWS (drawn first — behind all boxes) ═══════════════ -->
+
+      <!-- GitLab → Glint: webhook delivery -->
+      <line x1="223" y1="128" x2="258" y2="110" stroke="#34d399" stroke-width="1.5" marker-end="url(#arr-green)"/>
+      <!-- Glint → GitLab: 202 Accepted -->
+      <line x1="258" y1="178" x2="223" y2="178" stroke="#64748b" stroke-width="1.5" marker-end="url(#arr)"/>
+      <!-- Glint → GitLab: async API calls -->
+      <line x1="258" y1="198" x2="223" y2="198" stroke="#64748b" stroke-width="1.2" stroke-dasharray="4,2" marker-end="url(#arr)"/>
+
+      <!-- claude.ts → Claude API (right then up) -->
+      <polyline points="682,345 742,345 742,108 856,108" fill="none" stroke="#fbbf24" stroke-width="1.5" marker-end="url(#arr-amber)"/>
+      <!-- Claude API → claude.ts (response, dashed, slightly offset) -->
+      <polyline points="856,128 752,128 752,362 682,362" fill="none" stroke="#64748b" stroke-width="1.2" stroke-dasharray="5,2" marker-end="url(#arr)"/>
+
+      <!-- CI/CD → SonarQube (passes behind Glint, visible at entry/exit) -->
+      <line x1="223" y1="410" x2="856" y2="298" stroke="#94a3b8" stroke-width="1.2" marker-end="url(#arr)"/>
+
+      <!-- CI/CD publish:tag → Container Registry (inside GitLab block — labelled there) -->
+      <!-- Auto-release loop label: shown as text inside CI/CD box -->
+
+      <!-- ═══════════════ INFRASTRUCTURE BOUNDARY ═══════════════ -->
+      <rect x="12" y="12" width="700" height="570" rx="12"
+            fill="none" stroke="#fbbf24" stroke-width="1.5" stroke-dasharray="8,4" opacity="0.5"/>
+      <text x="24" y="10" fill="#fbbf24" font-size="9" font-weight="600">Your Infrastructure</text>
+
+      <!-- ═══════════════ GITLAB CE BLOCK ═══════════════ -->
+      <rect x="25" y="46" width="195" height="210" rx="6" fill="#0f172a"/>
+      <rect x="25" y="46" width="195" height="210" rx="6" fill="rgba(6,78,59,0.4)" stroke="#34d399" stroke-width="1.5"/>
+      <text x="122" y="66" fill="white" font-size="11" font-weight="600" text-anchor="middle">GitLab CE</text>
+      <text x="122" y="79" fill="#94a3b8" font-size="8" text-anchor="middle">self-hosted · free tier</text>
+      <line x1="35" y1="86" x2="210" y2="86" stroke="#34d399" stroke-width="0.5" opacity="0.4"/>
+      <text x="39" y="102" fill="#86efac" font-size="8">⬡  Webhook delivery</text>
+      <text x="39" y="118" fill="#86efac" font-size="8">⬡  Notes API (post MR comments)</text>
+      <text x="39" y="134" fill="#86efac" font-size="8">⬡  MR / Diffs API</text>
+      <text x="39" y="150" fill="#86efac" font-size="8">⬡  Releases API</text>
+      <text x="39" y="166" fill="#86efac" font-size="8">⬡  Container Registry</text>
+      <text x="39" y="182" fill="#86efac" font-size="8">⬡  CI/CD runner host</text>
+      <text x="39" y="200" fill="#64748b" font-size="7.5">Free-tier APIs only</text>
+      <text x="39" y="213" fill="#64748b" font-size="7.5">No Premium features required</text>
+      <text x="39" y="226" fill="#64748b" font-size="7.5">PRIVATE-TOKEN auth on all calls</text>
+      <text x="39" y="239" fill="#64748b" font-size="7.5">Webhooks: X-Gitlab-Event header</text>
+
+      <!-- Arrow labels for GitLab ↔ Glint -->
+      <text x="226" y="118" fill="#34d399" font-size="7">POST /webhook</text>
+      <text x="226" y="127" fill="#34d399" font-size="7">MR Hook / Release Hook</text>
+      <text x="226" y="172" fill="#94a3b8" font-size="7">202 Accepted (sync)</text>
+      <text x="226" y="192" fill="#64748b" font-size="7">GET diffs · POST notes</text>
+      <text x="226" y="201" fill="#64748b" font-size="7">GET releases · PUT release desc</text>
+
+      <!-- ═══════════════ CI/CD PIPELINE BLOCK ═══════════════ -->
+      <rect x="25" y="282" width="195" height="270" rx="6" fill="#0f172a"/>
+      <rect x="25" y="282" width="195" height="270" rx="6" fill="rgba(6,78,59,0.4)" stroke="#34d399" stroke-width="1.5"/>
+      <text x="122" y="301" fill="white" font-size="11" font-weight="600" text-anchor="middle">CI/CD Pipeline</text>
+      <text x="122" y="314" fill="#94a3b8" font-size="8" text-anchor="middle">.gitlab-ci.yml</text>
+      <line x1="35" y1="321" x2="210" y2="321" stroke="#34d399" stroke-width="0.5" opacity="0.4"/>
+
+      <text x="39" y="337" fill="#64748b" font-size="7.5">test / secret-detection / build</text>
+      <text x="39" y="349" fill="#86efac" font-size="7.5">■ sast · unit-test (99% cov) · sonar-scan</text>
+      <text x="39" y="361" fill="#86efac" font-size="7.5">■ secret_detection · typecheck</text>
+
+      <line x1="35" y1="368" x2="210" y2="368" stroke="#34d399" stroke-width="0.5" opacity="0.3"/>
+      <text x="39" y="381" fill="#64748b" font-size="7.5">publish stage</text>
+      <text x="39" y="394" fill="#86efac" font-size="7.5">■  publish:dev → glint:dev</text>
+      <text x="39" y="406" fill="#64748b" font-size="7">   env: dev (DEVL_URL)</text>
+      <text x="39" y="419" fill="#86efac" font-size="7.5">■  release (push to main)</text>
+      <text x="39" y="431" fill="#64748b" font-size="7">   auto-bumps vX.Y.Z tag</text>
+      <text x="39" y="444" fill="#86efac" font-size="7.5">■  publish:tag (on vX.Y.Z tag)</text>
+      <text x="39" y="456" fill="#64748b" font-size="7">   → glint:vX.Y.Z + glint:latest</text>
+      <text x="39" y="468" fill="#64748b" font-size="7">   env: production (PROD_URL)</text>
+
+      <line x1="35" y1="476" x2="210" y2="476" stroke="#34d399" stroke-width="0.5" opacity="0.3"/>
+      <text x="39" y="489" fill="#64748b" font-size="7.5">Shell runners (tagged: shell)</text>
+      <text x="39" y="502" fill="#64748b" font-size="7.5">RELEASE_TOKEN CI/CD variable</text>
+      <text x="39" y="515" fill="#64748b" font-size="7.5">GitLab SAST + Secret Detection</text>
+      <text x="39" y="528" fill="#64748b" font-size="7.5">templates (built-in)</text>
+      <text x="39" y="541" fill="#64748b" font-size="7.5">Release → Glint → AI release notes</text>
+
+      <!-- ═══════════════ GLINT RECEIVER (Docker Container) ═══════════════ -->
+      <!-- Outer Docker container border -->
+      <rect x="258" y="46" width="426" height="516" rx="8" fill="#0f172a"/>
+      <rect x="258" y="46" width="426" height="516" rx="8" fill="rgba(6,78,59,0.12)" stroke="#34d399" stroke-width="1.5" stroke-dasharray="6,3"/>
+      <text x="471" y="64" fill="#34d399" font-size="11" font-weight="700" text-anchor="middle">Glint Receiver</text>
+      <text x="471" y="77" fill="#64748b" font-size="8" text-anchor="middle">Express / Node.js / TypeScript · Docker container · port 3000</text>
+
+      <!-- validateSecret middleware (security / rose) -->
+      <rect x="270" y="86" width="402" height="46" rx="6" fill="#0f172a"/>
+      <rect x="270" y="86" width="402" height="46" rx="6" fill="rgba(136,19,55,0.4)" stroke="#fb7185" stroke-width="1.5"/>
+      <text x="471" y="104" fill="white" font-size="10" font-weight="600" text-anchor="middle">validateSecret  middleware</text>
+      <text x="340" y="120" fill="#fda4af" font-size="8" text-anchor="middle">Legacy: X-Gitlab-Token</text>
+      <text x="471" y="120" fill="#94a3b8" font-size="8" text-anchor="middle">OR</text>
+      <text x="602" y="120" fill="#fda4af" font-size="8" text-anchor="middle">Signing: HMAC-SHA256 (Standard Webhooks)</text>
+
+      <!-- POST /webhook route -->
+      <rect x="270" y="146" width="402" height="40" rx="6" fill="#0f172a"/>
+      <rect x="270" y="146" width="402" height="40" rx="6" fill="rgba(6,78,59,0.4)" stroke="#34d399" stroke-width="1.5"/>
+      <text x="471" y="162" fill="white" font-size="10" font-weight="600" text-anchor="middle">POST /webhook — event routing</text>
+      <text x="471" y="177" fill="#94a3b8" font-size="8" text-anchor="middle">branches on x-gitlab-event header · responds 202 Accepted immediately</text>
+
+      <!-- MR Handler -->
+      <rect x="270" y="200" width="192" height="110" rx="6" fill="#0f172a"/>
+      <rect x="270" y="200" width="192" height="110" rx="6" fill="rgba(6,78,59,0.4)" stroke="#34d399" stroke-width="1.5"/>
+      <text x="366" y="218" fill="white" font-size="10" font-weight="600" text-anchor="middle">MR Handler</text>
+      <text x="366" y="231" fill="#94a3b8" font-size="8" text-anchor="middle">Merge Request Hook</text>
+      <line x1="280" y1="238" x2="452" y2="238" stroke="#34d399" stroke-width="0.5" opacity="0.3"/>
+      <text x="280" y="253" fill="#86efac" font-size="8">① getMRDetails()</text>
+      <text x="280" y="267" fill="#86efac" font-size="8">② getMRDiffs()</text>
+      <text x="280" y="281" fill="#86efac" font-size="8">③ summarizeMR() →</text>
+      <text x="280" y="295" fill="#86efac" font-size="8">④ postMRNote()</text>
+      <text x="280" y="304" fill="#64748b" font-size="7">actions: open · reopen</text>
+
+      <!-- Release Handler -->
+      <rect x="476" y="200" width="204" height="110" rx="6" fill="#0f172a"/>
+      <rect x="476" y="200" width="204" height="110" rx="6" fill="rgba(6,78,59,0.4)" stroke="#34d399" stroke-width="1.5"/>
+      <text x="578" y="218" fill="white" font-size="10" font-weight="600" text-anchor="middle">Release Handler</text>
+      <text x="578" y="231" fill="#94a3b8" font-size="8" text-anchor="middle">Release Hook</text>
+      <line x1="486" y1="238" x2="670" y2="238" stroke="#34d399" stroke-width="0.5" opacity="0.3"/>
+      <text x="486" y="253" fill="#86efac" font-size="8">① getReleases()</text>
+      <text x="486" y="267" fill="#86efac" font-size="8">② compareRefs() / getCommits()</text>
+      <text x="486" y="281" fill="#86efac" font-size="8">③ generateReleaseNotes() →</text>
+      <text x="486" y="295" fill="#86efac" font-size="8">④ updateRelease()</text>
+      <text x="486" y="304" fill="#64748b" font-size="7">action: create only</text>
+
+      <!-- services/gitlab.ts -->
+      <rect x="270" y="324" width="192" height="72" rx="6" fill="#0f172a"/>
+      <rect x="270" y="324" width="192" height="72" rx="6" fill="rgba(6,78,59,0.3)" stroke="#34d399" stroke-width="1" stroke-dasharray="3,2"/>
+      <text x="366" y="342" fill="#86efac" font-size="9.5" font-weight="500" text-anchor="middle">services/gitlab.ts</text>
+      <text x="366" y="356" fill="#64748b" font-size="8" text-anchor="middle">GitLab API client</text>
+      <text x="366" y="370" fill="#64748b" font-size="8" text-anchor="middle">fetch diffs · post notes</text>
+      <text x="366" y="384" fill="#64748b" font-size="8" text-anchor="middle">update releases</text>
+
+      <!-- services/claude.ts -->
+      <rect x="476" y="324" width="204" height="72" rx="6" fill="#0f172a"/>
+      <rect x="476" y="324" width="204" height="72" rx="6" fill="rgba(6,78,59,0.3)" stroke="#34d399" stroke-width="1" stroke-dasharray="3,2"/>
+      <text x="578" y="342" fill="#86efac" font-size="9.5" font-weight="500" text-anchor="middle">services/claude.ts</text>
+      <text x="578" y="356" fill="#64748b" font-size="8" text-anchor="middle">Anthropic SDK wrapper</text>
+      <text x="578" y="370" fill="#64748b" font-size="8" text-anchor="middle">diff truncation 20k chars</text>
+      <text x="578" y="384" fill="#64748b" font-size="8" text-anchor="middle">structured prompts</text>
+
+      <!-- GET /health -->
+      <rect x="270" y="410" width="402" height="38" rx="6" fill="#0f172a"/>
+      <rect x="270" y="410" width="402" height="38" rx="6" fill="rgba(30,41,59,0.5)" stroke="#475569" stroke-width="1"/>
+      <text x="471" y="426" fill="#94a3b8" font-size="10" font-weight="500" text-anchor="middle">GET /health</text>
+      <text x="471" y="440" fill="#64748b" font-size="8" text-anchor="middle">200 {"status":"ok"} · no auth required · liveness probe</text>
+
+      <!-- Docker notes -->
+      <line x1="270" y1="462" x2="672" y2="462" stroke="#34d399" stroke-width="0.5" opacity="0.25"/>
+      <text x="471" y="476" fill="#475569" font-size="7.5" text-anchor="middle">🐳  Multi-stage Dockerfile · non-root glint user · health-check on GET /health</text>
+      <text x="471" y="490" fill="#475569" font-size="7.5" text-anchor="middle">config from webhook-receiver/.env at runtime (never baked into image)</text>
+      <text x="471" y="504" fill="#475569" font-size="7.5" text-anchor="middle">external docker-shared network · restart: unless-stopped</text>
+      <text x="471" y="518" fill="#475569" font-size="7.5" text-anchor="middle">stateless · no database · no queue · safe to restart or load-balance</text>
+      <text x="471" y="532" fill="#475569" font-size="7.5" text-anchor="middle">fire-and-forget: 202 before AI processing begins (avoids GitLab timeout)</text>
+      <text x="471" y="546" fill="#475569" font-size="7.5" text-anchor="middle">config.ts: fail-fast on startup if any required env var is missing</text>
+
+      <!-- ═══════════════ SONARQUBE (inside infra) ═══════════════ -->
+      <rect x="258" y="576" width="198" height="0" rx="6" fill="none"/>
+      <!-- SonarQube positioned below the infra boundary - moved outside -->
+
+      <!-- ═══════════════ E2E TEST HARNESS (inside infra, dashed, not deployed) ═══════════════ -->
+      <rect x="380" y="576" width="330" height="0" rx="6" fill="none"/>
+
+      <!-- ═══════════════ EXTERNAL SERVICES (right side) ═══════════════ -->
+      <text x="868" y="30" fill="#64748b" font-size="9">External / Tooling</text>
+      <line x1="856" y1="34" x2="1048" y2="34" stroke="#334155" stroke-width="0.5"/>
+
+      <!-- Claude API -->
+      <rect x="856" y="46" width="188" height="120" rx="6" fill="#0f172a"/>
+      <rect x="856" y="46" width="188" height="120" rx="6" fill="rgba(120,53,15,0.3)" stroke="#fbbf24" stroke-width="1.5"/>
+      <text x="950" y="66" fill="white" font-size="11" font-weight="600" text-anchor="middle">Anthropic Claude API</text>
+      <text x="950" y="79" fill="#94a3b8" font-size="8" text-anchor="middle">external · cloud</text>
+      <line x1="866" y1="86" x2="1034" y2="86" stroke="#fbbf24" stroke-width="0.5" opacity="0.4"/>
+      <text x="950" y="101" fill="#fcd34d" font-size="9" text-anchor="middle">claude-sonnet-4-6</text>
+      <text x="950" y="115" fill="#64748b" font-size="8" text-anchor="middle">Messages API</text>
+      <text x="950" y="129" fill="#64748b" font-size="8" text-anchor="middle">ANTHROPIC_API_KEY auth</text>
+      <text x="950" y="143" fill="#64748b" font-size="8" text-anchor="middle">Only call that leaves infra</text>
+      <!-- Arrow labels for Claude ↔ Glint -->
+      <text x="746" y="338" fill="#fbbf24" font-size="7">summarizeMR()</text>
+      <text x="746" y="349" fill="#fbbf24" font-size="7">generateReleaseNotes()</text>
+      <text x="746" y="368" fill="#64748b" font-size="7">AI response (dashed)</text>
+
+      <!-- SonarQube -->
+      <rect x="856" y="188" width="188" height="90" rx="6" fill="#0f172a"/>
+      <rect x="856" y="188" width="188" height="90" rx="6" fill="rgba(30,41,59,0.5)" stroke="#94a3b8" stroke-width="1.5"/>
+      <text x="950" y="208" fill="white" font-size="11" font-weight="600" text-anchor="middle">SonarQube</text>
+      <text x="950" y="221" fill="#94a3b8" font-size="8" text-anchor="middle">self-hosted · code quality</text>
+      <line x1="866" y1="228" x2="1034" y2="228" stroke="#94a3b8" stroke-width="0.5" opacity="0.4"/>
+      <text x="950" y="244" fill="#cbd5e1" font-size="8" text-anchor="middle">static analysis</text>
+      <text x="950" y="258" fill="#64748b" font-size="8" text-anchor="middle">sonar-scan (non-blocking)</text>
+      <text x="950" y="270" fill="#64748b" font-size="8" text-anchor="middle">sonar-project.properties</text>
+      <!-- Arrow label -->
+      <text x="740" y="390" fill="#94a3b8" font-size="7">scan results (CI → Sonar)</text>
+
+      <!-- E2E Test Harness -->
+      <rect x="856" y="300" width="188" height="158" rx="6" fill="#0f172a"/>
+      <rect x="856" y="300" width="188" height="158" rx="6" fill="rgba(30,41,59,0.3)" stroke="#475569" stroke-width="1" stroke-dasharray="4,3"/>
+      <text x="950" y="320" fill="#94a3b8" font-size="10" font-weight="600" text-anchor="middle">E2E Test Harness</text>
+      <text x="950" y="333" fill="#475569" font-size="8" text-anchor="middle">local / CI · not deployed</text>
+      <line x1="866" y1="340" x2="1034" y2="340" stroke="#475569" stroke-width="0.5" opacity="0.3"/>
+      <text x="866" y="356" fill="#94a3b8" font-size="8">Mock GitLab API  :4000</text>
+      <text x="866" y="370" fill="#94a3b8" font-size="8">Receiver process  :3001</text>
+      <text x="866" y="386" fill="#64748b" font-size="7.5">fixture JSON payloads</text>
+      <text x="866" y="400" fill="#64748b" font-size="7.5">real Anthropic API call</text>
+      <text x="866" y="414" fill="#64748b" font-size="7.5">polls __test__/notes</text>
+      <text x="866" y="428" fill="#64748b" font-size="7.5">exit 0 on success / 60s timeout</text>
+      <text x="866" y="442" fill="#64748b" font-size="7.5">spawns receiver as child process</text>
+      <text x="866" y="452" fill="#475569" font-size="7">GITLAB_BASE_URL → localhost:4000</text>
+
+      <!-- ═══════════════ LEGEND ═══════════════ -->
+      <line x1="12" y1="600" x2="1048" y2="600" stroke="#1e293b" stroke-width="0.5"/>
+      <text x="20" y="616" fill="#475569" font-size="8.5" font-weight="600">LEGEND</text>
+
+      <rect x="80" y="607" width="11" height="11" rx="2" fill="rgba(6,78,59,0.4)" stroke="#34d399" stroke-width="1"/>
+      <text x="96" y="617" fill="#94a3b8" font-size="8">Backend / Service</text>
+
+      <rect x="210" y="607" width="11" height="11" rx="2" fill="rgba(136,19,55,0.4)" stroke="#fb7185" stroke-width="1"/>
+      <text x="226" y="617" fill="#94a3b8" font-size="8">Security / Auth</text>
+
+      <rect x="330" y="607" width="11" height="11" rx="2" fill="rgba(120,53,15,0.3)" stroke="#fbbf24" stroke-width="1"/>
+      <text x="346" y="617" fill="#94a3b8" font-size="8">External / Cloud</text>
+
+      <rect x="455" y="607" width="11" height="11" rx="2" fill="rgba(30,41,59,0.5)" stroke="#94a3b8" stroke-width="1"/>
+      <text x="471" y="617" fill="#94a3b8" font-size="8">Utility / Generic</text>
+
+      <rect x="565" y="607" width="11" height="11" rx="2" fill="none" stroke="#fbbf24" stroke-width="1" stroke-dasharray="3,2"/>
+      <text x="581" y="617" fill="#94a3b8" font-size="8">Infrastructure boundary</text>
+
+      <line x1="714" y1="612" x2="736" y2="612" stroke="#64748b" stroke-width="1.5" marker-end="url(#arr)"/>
+      <text x="741" y="617" fill="#94a3b8" font-size="8">Data flow</text>
+
+      <line x1="800" y1="612" x2="822" y2="612" stroke="#64748b" stroke-width="1.2" stroke-dasharray="4,2" marker-end="url(#arr)"/>
+      <text x="827" y="617" fill="#94a3b8" font-size="8">Response</text>
+
+      <line x1="886" y1="612" x2="908" y2="612" stroke="#34d399" stroke-width="1.5" marker-end="url(#arr-green)"/>
+      <text x="913" y="617" fill="#94a3b8" font-size="8">Webhook</text>
+
+      <line x1="960" y1="612" x2="982" y2="612" stroke="#fbbf24" stroke-width="1.5" marker-end="url(#arr-amber)"/>
+      <text x="987" y="617" fill="#94a3b8" font-size="8">AI request</text>
+
+    </svg>
+  </div>
+
+  <div class="cards">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-dot green"></div>
+        <h3>Glint Receiver</h3>
+      </div>
+      <ul>
+        <li>• Express / Node.js / TypeScript (strict mode)</li>
+        <li>• POST /webhook — MR &amp; Release hook dispatch</li>
+        <li>• Fire-and-forget: 202 before AI processing (avoids GitLab timeout)</li>
+        <li>• Dual auth: X-Gitlab-Token OR HMAC-SHA256 signing token</li>
+        <li>• Stateless — no DB, no queue, restart-safe</li>
+        <li>• Docker: multi-stage build, non-root user, health check</li>
+        <li>• Fail-fast config: missing env vars abort startup</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-dot amber"></div>
+        <h3>AI Integration</h3>
+      </div>
+      <ul>
+        <li>• Anthropic SDK — claude-sonnet-4-6 (default, overridable)</li>
+        <li>• MR: diff → Summary / Key Changes / Review Notes</li>
+        <li>• Release: commits → Features / Fixes / Improvements / Breaking / Chores</li>
+        <li>• Diff truncated at 20k chars; commits at 15k — with inline notice</li>
+        <li>• Only outbound call that leaves your infrastructure</li>
+        <li>• Model swap: set ANTHROPIC_MODEL env var</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-dot violet"></div>
+        <h3>CI/CD &amp; Ops</h3>
+      </div>
+      <ul>
+        <li>• TypeScript typecheck on every push</li>
+        <li>• SonarQube scan (non-blocking, MR + main + dev)</li>
+        <li>• Auto patch version: main push → vX.Y.Z tag via GitLab API</li>
+        <li>• Images: glint:dev, glint:vX.Y.Z, glint:latest</li>
+        <li>• GitLab Release auto-created → Glint generates AI release notes</li>
+        <li>• Shell runners (tagged: shell) — no docker-in-docker</li>
+        <li>• RELEASE_TOKEN: project access token (api + write_repository)</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="footer">
+    Glint · Node.js / TypeScript / Express · Anthropic Claude · GitLab CE · Docker
+  </div>
+</div>
+
+<script>
+  async function captureImage() {
+    const container = document.getElementById('report-container');
+    const toolbar = container.querySelector('.toolbar');
+    const rect = container.getBoundingClientRect();
+    return html2canvas(document.body, {
+      x: rect.x - 32, y: rect.y - 32,
+      width: rect.width + 64, height: rect.height + 64,
+      scale: 2, backgroundColor: '#020617',
+      ignoreElements: el => el === toolbar
+    });
+  }
+  async function copyAsImage() {
+    try {
+      const canvas = await captureImage();
+      canvas.toBlob(blob => navigator.clipboard.write([new ClipboardItem({'image/png': blob})]));
+    } catch(e) { alert('Copy failed: ' + e.message); }
+  }
+  async function downloadPNG() {
+    try {
+      const canvas = await captureImage();
+      const a = document.createElement('a');
+      a.download = 'glint-architecture.png';
+      a.href = canvas.toDataURL('image/png');
+      a.click();
+    } catch(e) { alert('Download failed: ' + e.message); }
+  }
+  async function downloadPDF() {
+    try {
+      const canvas = await captureImage();
+      const { jsPDF } = globalThis.jspdf;
+      const pdf = new jsPDF({ orientation: 'landscape', unit: 'px', format: [canvas.width, canvas.height] });
+      pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, canvas.width, canvas.height);
+      pdf.save('glint-architecture.pdf');
+    } catch(e) { alert('PDF failed: ' + e.message); }
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,177 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <radialGradient id="bg-radial" cx="50%" cy="50%" r="55%" fx="50%" fy="50%">
+      <stop offset="0%" stop-color="#1E293B"/>
+      <stop offset="100%" stop-color="#0F172A"/>
+    </radialGradient>
+    <filter id="glow-s" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="glow-s-strong" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="7" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <linearGradient id="bottom-grad-s" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#FC6D26" stop-opacity="0.0"/>
+      <stop offset="30%" stop-color="#FC6D26" stop-opacity="0.9"/>
+      <stop offset="60%" stop-color="#A855F7" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#A855F7" stop-opacity="0.0"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background with radial gradient -->
+  <rect width="1200" height="630" fill="url(#bg-radial)"/>
+
+  <!-- Subtle decorative grid dots -->
+  <g opacity="0.06" fill="#94A3B8">
+    <!-- Grid pattern across the background -->
+    <circle cx="60" cy="60" r="2"/><circle cx="120" cy="60" r="2"/><circle cx="180" cy="60" r="2"/>
+    <circle cx="240" cy="60" r="2"/><circle cx="300" cy="60" r="2"/><circle cx="360" cy="60" r="2"/>
+    <circle cx="840" cy="60" r="2"/><circle cx="900" cy="60" r="2"/><circle cx="960" cy="60" r="2"/>
+    <circle cx="1020" cy="60" r="2"/><circle cx="1080" cy="60" r="2"/><circle cx="1140" cy="60" r="2"/>
+
+    <circle cx="60" cy="120" r="2"/><circle cx="120" cy="120" r="2"/><circle cx="180" cy="120" r="2"/>
+    <circle cx="240" cy="120" r="2"/><circle cx="300" cy="120" r="2"/>
+    <circle cx="900" cy="120" r="2"/><circle cx="960" cy="120" r="2"/><circle cx="1020" cy="120" r="2"/>
+    <circle cx="1080" cy="120" r="2"/><circle cx="1140" cy="120" r="2"/>
+
+    <circle cx="60" cy="180" r="2"/><circle cx="120" cy="180" r="2"/><circle cx="180" cy="180" r="2"/>
+    <circle cx="960" cy="180" r="2"/><circle cx="1020" cy="180" r="2"/><circle cx="1080" cy="180" r="2"/>
+    <circle cx="1140" cy="180" r="2"/>
+
+    <circle cx="60" cy="480" r="2"/><circle cx="120" cy="480" r="2"/><circle cx="180" cy="480" r="2"/>
+    <circle cx="960" cy="480" r="2"/><circle cx="1020" cy="480" r="2"/><circle cx="1080" cy="480" r="2"/>
+    <circle cx="1140" cy="480" r="2"/>
+
+    <circle cx="60" cy="540" r="2"/><circle cx="120" cy="540" r="2"/><circle cx="180" cy="540" r="2"/>
+    <circle cx="240" cy="540" r="2"/><circle cx="900" cy="540" r="2"/><circle cx="960" cy="540" r="2"/>
+    <circle cx="1020" cy="540" r="2"/><circle cx="1080" cy="540" r="2"/><circle cx="1140" cy="540" r="2"/>
+
+    <circle cx="60" cy="600" r="2"/><circle cx="120" cy="600" r="2"/><circle cx="180" cy="600" r="2"/>
+    <circle cx="240" cy="600" r="2"/><circle cx="300" cy="600" r="2"/>
+    <circle cx="840" cy="600" r="2"/><circle cx="900" cy="600" r="2"/><circle cx="960" cy="600" r="2"/>
+    <circle cx="1020" cy="600" r="2"/><circle cx="1080" cy="600" r="2"/><circle cx="1140" cy="600" r="2"/>
+  </g>
+
+  <!-- Corner decorative branch elements (top-left, faint) -->
+  <g opacity="0.12" transform="translate(80, 80)">
+    <line x1="30" y1="0" x2="30" y2="120" stroke="#FC6D26" stroke-width="3" stroke-linecap="round"/>
+    <path d="M 30 30 C 90 30 90 90 30 90" fill="none" stroke="#A855F7" stroke-width="3"/>
+    <circle cx="30" cy="30" r="6" fill="#FC6D26"/>
+    <circle cx="30" cy="90" r="6" fill="#FC6D26"/>
+    <circle cx="78" cy="60" r="4" fill="#A855F7"/>
+  </g>
+
+  <!-- Corner decorative branch elements (bottom-right, faint) -->
+  <g opacity="0.12" transform="translate(1050, 440)">
+    <line x1="30" y1="0" x2="30" y2="120" stroke="#FC6D26" stroke-width="3" stroke-linecap="round"/>
+    <path d="M 30 30 C 90 30 90 90 30 90" fill="none" stroke="#A855F7" stroke-width="3"/>
+    <circle cx="30" cy="30" r="6" fill="#FC6D26"/>
+    <circle cx="30" cy="90" r="6" fill="#FC6D26"/>
+    <circle cx="78" cy="60" r="4" fill="#A855F7"/>
+  </g>
+
+  <!-- Scattered faint sparkles -->
+  <g transform="translate(1100, 100)" opacity="0.2" fill="#A855F7">
+    <polygon points="0,-10 2.5,-2.5 10,0 2.5,2.5 0,10 -2.5,2.5 -10,0 -2.5,-2.5"/>
+  </g>
+  <g transform="translate(150, 520)" opacity="0.15" fill="#F59E0B">
+    <polygon points="0,-8 2,-2 8,0 2,2 0,8 -2,2 -8,0 -2,-2"/>
+  </g>
+  <g transform="translate(1050, 520)" opacity="0.18" fill="#FC6D26">
+    <polygon points="0,-7 1.75,-1.75 7,0 1.75,1.75 0,7 -1.75,1.75 -7,0 -1.75,-1.75"/>
+  </g>
+  <g transform="translate(160, 100)" opacity="0.15" fill="#A855F7">
+    <polygon points="0,-7 1.75,-1.75 7,0 1.75,1.75 0,7 -1.75,1.75 -7,0 -1.75,-1.75"/>
+  </g>
+
+  <!-- ======================== -->
+  <!-- CENTER: Icon mark ~200x200, centered at (600, 185) -->
+  <!-- Original icon bounds: y 90-422 (332px tall), x center 256. Scale: 200/332 = 0.60 -->
+  <g transform="translate(600, 185) scale(0.60)">
+    <!-- Trunk line -->
+    <line x1="0" y1="-166" x2="0" y2="166" stroke="#FC6D26" stroke-width="10" stroke-linecap="round"/>
+
+    <!-- Orange commit dot branch-out (y=-84) -->
+    <circle cx="0" cy="-84" r="21" fill="#FC6D26" filter="url(#glow-s)"/>
+    <circle cx="0" cy="-84" r="12" fill="#1E293B"/>
+
+    <!-- Orange commit dot merge-in (y=84) -->
+    <circle cx="0" cy="84" r="21" fill="#FC6D26" filter="url(#glow-s)"/>
+    <circle cx="0" cy="84" r="12" fill="#1E293B"/>
+
+    <!-- Purple arc -->
+    <path d="M 0 -84 C 144 -84 144 84 0 84" fill="none" stroke="#A855F7" stroke-width="10" stroke-linecap="round" filter="url(#glow-s)"/>
+
+    <!-- Purple dot at midpoint (102, 0) -->
+    <circle cx="102" cy="0" r="16" fill="#A855F7" filter="url(#glow-s)"/>
+    <circle cx="102" cy="0" r="8" fill="#1E293B"/>
+
+    <!-- Gold sparkle at merge point -->
+    <g transform="translate(0, 84)" filter="url(#glow-s-strong)">
+      <polygon points="0,-30 7.5,-7.5 30,0 7.5,7.5 0,30 -7.5,7.5 -30,0 -7.5,-7.5" fill="#F59E0B"/>
+      <circle cx="0" cy="0" r="5" fill="#FDE68A"/>
+    </g>
+  </g>
+
+  <!-- ======================== -->
+  <!-- TEXT: Centered below icon -->
+
+  <!-- Title -->
+  <text
+    x="600"
+    y="380"
+    text-anchor="middle"
+    font-family="ui-monospace, 'Cascadia Code', 'Courier New', monospace"
+    font-size="80"
+    font-weight="700"
+    fill="#F8FAFC"
+    letter-spacing="-1"
+  >Glint</text>
+
+  <!-- Subtitle -->
+  <text
+    x="600"
+    y="436"
+    text-anchor="middle"
+    font-family="ui-monospace, 'Cascadia Code', 'Courier New', monospace"
+    font-size="34"
+    fill="#94A3B8"
+    letter-spacing="0.5"
+  >AI-powered code review · Self-hosted GitLab CE</text>
+
+  <!-- Badge pills centered -->
+  <!-- Merge Requests badge (orange) — width 224, centered left of midpoint -->
+  <rect x="338" y="468" width="224" height="46" rx="23" fill="#FC6D26"/>
+  <text
+    x="450"
+    y="497"
+    text-anchor="middle"
+    font-family="ui-monospace, 'Cascadia Code', 'Courier New', monospace"
+    font-size="21"
+    font-weight="600"
+    fill="#FFFFFF"
+  >Merge Requests</text>
+
+  <!-- Release Notes badge (purple) — width 204, centered right of midpoint -->
+  <rect x="638" y="468" width="204" height="46" rx="23" fill="#A855F7"/>
+  <text
+    x="740"
+    y="497"
+    text-anchor="middle"
+    font-family="ui-monospace, 'Cascadia Code', 'Courier New', monospace"
+    font-size="21"
+    font-weight="600"
+    fill="#FFFFFF"
+  >Release Notes</text>
+
+  <!-- Bottom gradient accent line -->
+  <line x1="0" y1="627" x2="1200" y2="627" stroke="url(#bottom-grad-s)" stroke-width="3"/>
+</svg>
