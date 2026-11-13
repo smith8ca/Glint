@@ -1,13 +1,13 @@
 ---
 name: CI
 
-# Runs on pull requests and feature branches. Pushes to main and dev run the
-# same jobs via release.yml (workflow_call) before publishing.
+# Runs on pull requests. Pushes to main and dev run the same jobs via
+# release.yml (workflow_call) before publishing. Branch pushes have no trigger
+# of their own, so a PR branch is checked once rather than twice.
 on:
   pull_request:
-  push:
-    branches-ignore: [main, dev]
   workflow_call:
+  workflow_dispatch: # run on demand for a branch without a PR
 
 permissions:
   contents: read

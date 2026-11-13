@@ -313,7 +313,7 @@ sudo bash -c '
 
 ## Versioning
 
-Releases are automatic and patch-level: every push to `main` reads the latest `vX.Y.Z` tag, increments the patch number, publishes the versioned image (`:vX.Y.Z`) and updates `:latest`.
+Releases are automatic and patch-level: every push to `main` reads the latest `vX.Y.Z` tag, increments the patch number, publishes the versioned image (`:vX.Y.Z`) and updates `:latest`. On GitHub, a push whose commit already carries a `vX.Y.Z` tag is skipped, so it doesn't cut a duplicate release.
 
 - **GitHub:** the release workflow creates the tag and a GitHub Release with auto-generated notes in the same run.
 - **GitLab:** the `release` job creates the tag via the GitLab API, which triggers `publish:tag` to build the image and create a GitLab Release. If Glint itself is pointed at the project, its Release Hook then replaces the placeholder description with AI-generated release notes.
