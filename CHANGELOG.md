@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Test tooling upgraded from Vitest 2 to Vitest 5.1 (and `@vitest/coverage-v8` 5.1, on Vite 8). Clears all 10 dev-only `npm audit` findings (3 critical, including `tinypool` and `esbuild`) and the Vite CJS deprecation warning. No effect on the published image, which ships production dependencies only
+
 ---
 
 ## [0.1.16] - 2026-11-13
