@@ -9,9 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+---
+
+## [0.1.17] - 2026-11-14
+
+### Added
+
+- [Project wiki](https://github.com/smith8ca/Glint/wiki) with guides for setup, configuration, webhooks, deployment, private CAs, security, API reference, architecture, development, CI/CD, troubleshooting and FAQ; linked from the README
+
 ### Changed
 
 - Test tooling upgraded from Vitest 2 to Vitest 5.1 (and `@vitest/coverage-v8` 5.1, on Vite 8). Clears all 10 dev-only `npm audit` findings (3 critical, including `tinypool` and `esbuild`) and the Vite CJS deprecation warning. No effect on the published image, which ships production dependencies only
+
+### Fixed
+
+- README corrections: `ci.yml` runs on pull requests and manual runs, not branch pushes; the example `docker-compose.yml` needs its inline `environment:` placeholders replaced (they override `env_file:`); the e2e test also needs `WEBHOOK_SECRET` and a non-empty `GITLAB_TOKEN`, and must run without `WEBHOOK_SIGNING_TOKEN`
 
 ---
 
@@ -197,7 +209,8 @@ Released as a series of automated patch versions (v0.1.2 through v0.1.6) via the
 
 ---
 
-[Unreleased]: https://github.com/smith8ca/Glint/compare/v0.1.16...HEAD
+[Unreleased]: https://github.com/smith8ca/Glint/compare/v0.1.17...HEAD
+[0.1.17]: https://github.com/smith8ca/Glint/compare/v0.1.16...v0.1.17
 [0.1.16]: https://github.com/smith8ca/Glint/compare/v0.1.15...v0.1.16
 [0.1.15]: https://github.com/smith8ca/Glint/releases/tag/v0.1.15
 [0.1.14]: https://github.com/smith8ca/Glint/releases/tag/v0.1.14
