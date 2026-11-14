@@ -19,9 +19,11 @@ const config: Config = {
 const mockCreate = vi.fn();
 
 beforeEach(() => {
-  vi.mocked(Anthropic).mockImplementation(
-    () => ({ messages: { create: mockCreate } }) as unknown as Anthropic
-  );
+  // A function expression, not an arrow function: the client is created with
+  // `new Anthropic(...)`, and Vitest 4+ mocks can't be constructed from arrows.
+  vi.mocked(Anthropic).mockImplementation(function () {
+    return { messages: { create: mockCreate } } as unknown as Anthropic;
+  });
   mockCreate.mockClear();
 });
 
