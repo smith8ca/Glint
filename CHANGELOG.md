@@ -14,6 +14,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Malformed JSON sent to `/webhook` no longer returns Express's HTML error page, which included a stack trace and internal file paths and could be triggered without a valid webhook token (the body is parsed before authentication). Errors now get a short JSON body with no details: `400 {"error":"Bad Request: invalid JSON body"}`, `413` for an oversized body, and a generic `500` for anything unexpected. Rejected bodies are logged at `warn`
 - The Docker image sets `NODE_ENV=production`
 
+### Changed
+
+- Express upgraded from 4 to 5. A webhook request with no JSON body is still answered with `200 Ignored`
+- TypeScript upgraded from 5 to 7, and `npm run dev` now uses `tsx` instead of `ts-node`, which does not support TypeScript 7
+- dotenv upgraded from 16 to 18; supertest and its types updated (tests only)
+- Unknown routes return `404 {"error":"Not Found"}` as JSON instead of Express's HTML page
+- Dependabot no longer proposes major `@types/node` updates, which must match the Node version in use
+
 ---
 
 ## [0.1.20] - 2026-11-15

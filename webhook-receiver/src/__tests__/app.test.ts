@@ -36,6 +36,7 @@ describe('createApp', () => {
     const app = createApp(config);
     const res = await request(app).get('/nonexistent');
     expect(res.status).toBe(404);
+    expect(res.body).toEqual({ error: 'Not Found' });
   });
 });
 
