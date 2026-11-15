@@ -281,6 +281,16 @@ describe('POST /webhook — Release Hook', () => {
 
 describe('POST /webhook — payload validation', () => {
   it.each([
+    ['Merge Request Hook', MR_EVENT],
+    ['Release Hook', REL_EVENT],
+  ])('ignores a %s request with no body instead of failing', async (_label, headers) => {
+    const app = createApp(config);
+    const res = await request(app).post('/webhook').set(headers);
+    expect(res.status).toBe(200);
+    expect(res.body.message).toMatch(/Ignored/);
+  });
+
+  it.each([
     ['string project id', { ...MR_PAYLOAD, project: { id: '1/../2' } }],
     ['zero project id', { ...MR_PAYLOAD, project: { id: 0 } }],
     ['missing project', { object_kind: 'merge_request', object_attributes: { iid: 42, action: 'open' } }],

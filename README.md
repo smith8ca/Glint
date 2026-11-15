@@ -4,7 +4,7 @@
 [![Latest release](https://img.shields.io/github/v/release/smith8ca/Glint?sort=semver)](https://github.com/smith8ca/Glint/releases/latest)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Node.js ≥22](https://img.shields.io/badge/node-%3E%3D22-339933?logo=node.js&logoColor=white)](https://nodejs.org)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
+[![TypeScript](https://img.shields.io/badge/TypeScript-7.x-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
 [![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker&logoColor=white)](https://docs.docker.com/get-docker/)
 [![Powered by Claude](https://img.shields.io/badge/Powered%20by-Claude%20AI-D97706?logo=anthropic&logoColor=white)](https://anthropic.com)
 
@@ -14,6 +14,7 @@ A self-hosted GitLab webhook receiver that automatically posts AI-generated code
 
 Full documentation — configuration, deployment, security, API reference and troubleshooting — is in the [project wiki](https://github.com/smith8ca/Glint/wiki).
 
+- [Example output](#example-output)
 - [How it works](#how-it-works)
 - [Prerequisites](#prerequisites)
 - [Project structure](#project-structure)
@@ -37,6 +38,59 @@ Full documentation — configuration, deployment, security, API reference and tr
 - [AI attribution](#ai-attribution)
 
 &nbsp;
+
+## Example output
+
+This is the comment Glint posted on a sample merge request that adds JWT authentication to an Express app (the fixture used by the [end-to-end test](#running-the-end-to-end-test)), written by `claude-sonnet-4-6`. Nothing was edited.
+
+<details>
+<summary><strong>Show the generated MR summary</strong></summary>
+
+> ## AI-Generated MR Summary
+>
+> ## MR Summary: Add JWT Authentication Middleware
+>
+> **Author:** @janedev | **Branch:** `feature/jwt-auth` → `main`
+>
+> ---
+>
+> ### 1. Summary
+> This MR introduces JWT-based authentication across the API by adding a login endpoint, a token generation utility, and a request validation middleware. Protected routes are secured globally by applying the `verifyToken` middleware in `app.js`, ensuring all endpoints registered after the `/auth` route require a valid token. The `jsonwebtoken` package is added as a new dependency to support token signing and verification.
+>
+> ---
+>
+> ### 2. Key Changes
+> - **`src/middleware/auth.js`** *(new)*: Implements `generateToken()` (signs a JWT with user ID, email, and role; 24h expiry) and `verifyToken()` (Express middleware that validates Bearer tokens from the `Authorization` header)
+> - **`src/routes/auth.js`** *(new)*: Adds a `POST /auth/login` endpoint that validates user credentials and returns a signed JWT on success
+> - **`src/app.js`**: Mounts the auth router at `/auth` and applies `verifyToken` globally to all subsequently registered routes
+> - **`package.json`**: Adds `jsonwebtoken ^9.0.0` as a dependency
+>
+> ---
+>
+> ### 3. Review Notes
+>
+> **Security**
+> - 🔍 **Token payload scope**: The JWT includes `role`, which is appropriate, but confirm that downstream route handlers actually enforce role-based access control — issuing the claim without checking it provides no protection
+> - 🔍 **No token refresh or revocation mechanism**: 24-hour tokens with no blacklisting means a compromised token remains valid until expiry; consider whether this risk is acceptable for your threat model, or if a refresh token flow is needed
+> - 🔍 **Error logging on login**: `console.error` in the login route will log any exception — ensure sensitive request data (e.g., passwords) cannot be inadvertently captured in those logs depending on the error shape
+>
+> **Correctness**
+> - ⚠️ **Global middleware ordering**: `verifyToken` is applied via `app.use()` after `/auth`, which correctly leaves the login endpoint public. This is working as intended but is an implicit contract — a comment (which is already present, helpfully) or a more explicit route-grouping pattern would reduce the risk of a future developer accidentally registering a public route below the middleware
+> - ⚠️ **Missing rate limiting on `/auth/login`**: The login endpoint is unauthenticated and currently has no brute-force protection; adding a rate-limiting middleware (e.g., `express-rate-limit`) is strongly recommended before production deployment
+>
+> **Testing**
+> - 🔍 No test files appear to be included in this MR — unit tests for `generateToken`/`verifyToken` and integration tests for the login endpoint should be added, particularly covering invalid credentials, missing/malformed tokens, and expired token scenarios
+>
+> **Minor**
+> - The startup-time guard (`if (!JWT_SECRET) throw new Error(...)`) is a good practice and ensures misconfigured environments fail fast ✅
+> - Password verification is correctly delegated to `user.verifyPassword()`, keeping credential handling out of the route layer ✅
+>
+> ---
+> *This summary was generated automatically. Please verify before relying on it.*
+
+</details>
+
+Release notes work the same way: when a GitLab release is created, Glint replaces its description with notes grouped into New Features, Bug Fixes, Improvements, Breaking Changes and Internal changes.
 
 ## How it works
 
@@ -172,7 +226,7 @@ The container runs as a non-root user, includes a health check on `GET /health`,
 
 ### Without Docker
 
-**Development** (TypeScript, hot reload via `ts-node`):
+**Development** (runs the TypeScript source directly with `tsx`; restart after edits):
 
 ```bash
 cd webhook-receiver

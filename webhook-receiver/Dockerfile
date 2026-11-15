@@ -18,6 +18,9 @@ FROM node:22-alpine AS production
 
 WORKDIR /app
 
+# Production mode: among other things, Express never puts stack traces in responses
+ENV NODE_ENV=production
+
 # Run as a non-root user
 RUN addgroup -g 1001 -S glint && adduser -u 1001 -S glint -G glint
 
