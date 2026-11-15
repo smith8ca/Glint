@@ -50,6 +50,7 @@ typecheck:
     - cd webhook-receiver
     - npm ci
   script:
+    - npm run typecheck
     - npm run build
   artifacts:
     paths:
@@ -140,11 +141,20 @@ release:
   # via the GitLab API, which triggers a tag pipeline to build and publish the
   # versioned image. Requires RELEASE_TOKEN (project access token,
   # write_repository + api scopes) set as a CI/CD variable.
+  # Skips when the commit already carries a vX.Y.Z tag (for example a re-run
+  # pipeline, or a merge that leaves main on an already-released commit), so
+  # the same code is never released twice under two version numbers.
   stage: publish
   tags:
     - shell
   needs: [typecheck]
   script:
+    - |
+      EXISTING=$(git tag --points-at "$CI_COMMIT_SHA" -l 'v[0-9]*.[0-9]*.[0-9]*' | sort -V | tail -1)
+      if [ -n "$EXISTING" ]; then
+        echo "$CI_COMMIT_SHA is already released as $EXISTING; skipping."
+        exit 0
+      fi
     - LATEST=$(git tag -l 'v[0-9]*.[0-9]*.[0-9]*' | sort -V | tail -1)
     - LATEST=${LATEST:-v0.0.0}
     - MAJOR=$(echo ${LATEST#v} | cut -d. -f1)

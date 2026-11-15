@@ -87,6 +87,22 @@ describe('loadConfig', () => {
     expect(loadConfig().anthropicModel).toBe('claude-haiku-4-5');
   });
 
+  describe('LOG_LEVEL', () => {
+    it('defaults to info', () => {
+      expect(loadConfig().logLevel).toBe('info');
+    });
+
+    it('accepts a valid level, ignoring case and surrounding whitespace', () => {
+      process.env['LOG_LEVEL'] = ' Debug ';
+      expect(loadConfig().logLevel).toBe('debug');
+    });
+
+    it('throws for an unknown level', () => {
+      process.env['LOG_LEVEL'] = 'verbose';
+      expect(() => loadConfig()).toThrow('LOG_LEVEL must be one of');
+    });
+  });
+
   it('defaults gitlabRejectUnauthorized to true', () => {
     expect(loadConfig().gitlabRejectUnauthorized).toBe(true);
   });

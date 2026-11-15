@@ -204,6 +204,7 @@ The webhook receiver has a Vitest unit test suite (99% coverage) covering the Ex
 cd webhook-receiver
 npm test              # run once
 npm run test:coverage # run with an LCOV coverage report
+npm run typecheck     # type-check source and tests (the build skips tests)
 ```
 
 ## Running the end-to-end test
@@ -244,8 +245,23 @@ At least one of `WEBHOOK_SECRET` or `WEBHOOK_SIGNING_TOKEN` must be set. The sig
 | `GITLAB_CA_FILE`             | No       | —                   | Path to a PEM CA certificate (or bundle) to trust for GitLab, for a private or self-signed CA        |
 | `GITLAB_REJECT_UNAUTHORIZED` | No       | `true`              | Set to `false` to skip TLS verification for GitLab. Last resort — use `GITLAB_CA_FILE` instead       |
 | `PORT`                       | No       | `3000`              | Port the server listens on                                                                           |
+| `LOG_LEVEL`                  | No       | `info`              | `fatal`, `error`, `warn`, `info`, `debug`, `trace` or `silent`. See [Logging](#logging)              |
 
 ¹ At least one of `WEBHOOK_SECRET` or `WEBHOOK_SIGNING_TOKEN` is required.
+
+### Logging
+
+Glint writes one JSON object per line to stdout, ready for Docker, Loki, Elasticsearch or any other log collector. Each line has `level`, `time` (ISO 8601), `service` and `msg`, plus fields for the event being handled, such as `projectId`, `mrIid` or `tag`, and `durationMs` when processing finishes:
+
+```json
+{"level":"info","time":"2026-11-14T20:15:02.311Z","service":"glint","event":"merge_request","projectId":12,"mrIid":42,"durationMs":8423,"msg":"Posted AI summary"}
+```
+
+- `warn` logs only problems: rejected webhooks (bad token or signature, invalid payload) and failed processing.
+- `info` (the default) adds startup and each event processed with its outcome.
+- `debug` also logs webhooks that were ignored (unhandled event types and actions).
+
+Errors from GitLab API calls are logged as a one-line description (method, path, status, message), never with request headers, so `GITLAB_TOKEN` stays out of the logs. For readable output while developing, pipe the logs through [pino-pretty](https://github.com/pinojs/pino-pretty): `npm run dev | npx pino-pretty`.
 
 ### GitLab with a private or self-signed CA
 
@@ -321,6 +337,8 @@ Releases are automatic and patch-level: every push to `main` reads the latest `v
 - **GitLab:** the `release` job creates the tag via the GitLab API, which triggers `publish:tag` to build the image and create a GitLab Release. If Glint itself is pointed at the project, its Release Hook then replaces the placeholder description with AI-generated release notes.
 
 ## Security considerations
+
+To report a vulnerability, see [SECURITY.md](SECURITY.md). Please don't open a public issue.
 
 - **Webhook authentication** — every request must carry a valid `X-Gitlab-Token` or HMAC signature (`WEBHOOK_SIGNING_TOKEN`, recommended). Both are verified in constant time, and signed requests older than five minutes are rejected.
 - **Token scope** — `GITLAB_TOKEN` can post notes and edit releases on every project it can access. Use a dedicated bot account or a project/group access token limited to the projects you want reviewed.

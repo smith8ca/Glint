@@ -15,6 +15,7 @@ const BASE_CONFIG: Config = {
   anthropicApiKey: 'test-key',
   anthropicModel: 'claude-sonnet-4-6',
   gitlabRejectUnauthorized: false,
+  logLevel: 'silent',
 };
 
 function makeReq(overrides: Record<string, unknown> = {}): Request {
