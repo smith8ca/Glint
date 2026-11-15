@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+---
+
+## [0.1.18] - 2026-11-15
+
 ### Added
 
 - Structured logging with [pino](https://github.com/pinojs/pino): one JSON object per line on stdout, with `level`, ISO `time`, `service`, `msg` and per-event fields (`event`, `projectId`, `mrIid` or `tag`, `durationMs`). Rejected webhooks (bad token or signature, invalid payload) are logged at `warn`, ignored events at `debug`
@@ -226,7 +230,8 @@ Released as a series of automated patch versions (v0.1.2 through v0.1.6) via the
 
 ---
 
-[Unreleased]: https://github.com/smith8ca/Glint/compare/v0.1.17...HEAD
+[Unreleased]: https://github.com/smith8ca/Glint/compare/v0.1.18...HEAD
+[0.1.18]: https://github.com/smith8ca/Glint/compare/v0.1.17...v0.1.18
 [0.1.17]: https://github.com/smith8ca/Glint/compare/v0.1.16...v0.1.17
 [0.1.16]: https://github.com/smith8ca/Glint/compare/v0.1.15...v0.1.16
 [0.1.15]: https://github.com/smith8ca/Glint/releases/tag/v0.1.15
