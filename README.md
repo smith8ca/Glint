@@ -204,6 +204,7 @@ The webhook receiver has a Vitest unit test suite (99% coverage) covering the Ex
 cd webhook-receiver
 npm test              # run once
 npm run test:coverage # run with an LCOV coverage report
+npm run typecheck     # type-check source and tests (the build skips tests)
 ```
 
 ## Running the end-to-end test
@@ -336,6 +337,8 @@ Releases are automatic and patch-level: every push to `main` reads the latest `v
 - **GitLab:** the `release` job creates the tag via the GitLab API, which triggers `publish:tag` to build the image and create a GitLab Release. If Glint itself is pointed at the project, its Release Hook then replaces the placeholder description with AI-generated release notes.
 
 ## Security considerations
+
+To report a vulnerability, see [SECURITY.md](SECURITY.md). Please don't open a public issue.
 
 - **Webhook authentication** — every request must carry a valid `X-Gitlab-Token` or HMAC signature (`WEBHOOK_SIGNING_TOKEN`, recommended). Both are verified in constant time, and signed requests older than five minutes are rejected.
 - **Token scope** — `GITLAB_TOKEN` can post notes and edit releases on every project it can access. Use a dedicated bot account or a project/group access token limited to the projects you want reviewed.
