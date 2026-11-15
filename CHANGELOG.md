@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Architecture diagram redrawn to show the choice of AI provider (Claude, a local model, or a hosted OpenAI-compatible API), the network boundary and the numbered request flow. It is now also shown in the README as `assets/png/architecture.png`
+
 ---
 
 ## [0.1.21] - 2026-11-15
