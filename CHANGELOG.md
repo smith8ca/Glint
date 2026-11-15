@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- README: a screenshot of a real Glint comment on a GitLab merge request, in the "Example output" section
+
 ---
 
 ## [0.1.22] - 2026-11-15
