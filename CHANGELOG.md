@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+
+- Malformed JSON sent to `/webhook` no longer returns Express's HTML error page, which included a stack trace and internal file paths and could be triggered without a valid webhook token (the body is parsed before authentication). Errors now get a short JSON body with no details: `400 {"error":"Bad Request: invalid JSON body"}`, `413` for an oversized body, and a generic `500` for anything unexpected. Rejected bodies are logged at `warn`
+- The Docker image sets `NODE_ENV=production`
+
 ---
 
 ## [0.1.20] - 2026-11-15
