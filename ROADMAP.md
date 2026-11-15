@@ -32,7 +32,7 @@ This roadmap outlines the planned direction for **Glint**. The project currently
 
 Foundational improvements to make the service reliable and straightforward to self-host in production.
 
-- Structured logging (e.g. [pino](https://github.com/pinojs/pino) or [winston](https://github.com/winstonjs/winston)) with configurable log levels and JSON output
+- [x] Structured logging with [pino](https://github.com/pinojs/pino): JSON output, configurable `LOG_LEVEL`, and per-event fields (project, MR, tag, duration)
 - Retry logic with exponential backoff for transient failures in Claude and GitLab API calls
 - Request queue with configurable concurrency limit to handle webhook bursts without dropping events
 

@@ -6,6 +6,7 @@ export default defineConfig({
     // Vitest 4+ no longer excludes build output by default; skip the compiled
     // copies of the tests that `npm run build` writes to dist/.
     exclude: [...configDefaults.exclude, 'dist/**'],
+    setupFiles: ['./src/__tests__/setup.ts'],
     coverage: {
       provider: 'v8',
       reporter: ['lcov', 'text'],

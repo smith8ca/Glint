@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import { LOG_LEVELS, LogLevel } from './logger';
 
 export interface Config {
   port: number;
@@ -11,6 +12,8 @@ export interface Config {
   gitlabRejectUnauthorized: boolean;
   /** PEM certificate(s) to trust for GitLab connections, read from GITLAB_CA_FILE. */
   gitlabCaCertificate?: string;
+  /** Minimum level written to the log, from LOG_LEVEL (default `info`). */
+  logLevel: LogLevel;
 }
 
 const PEM_CERTIFICATE_HEADER = '-----BEGIN CERTIFICATE-----';
@@ -41,6 +44,14 @@ function loadGitlabCaCertificate(): string | undefined {
   return pem;
 }
 
+function loadLogLevel(): LogLevel {
+  const value = (process.env['LOG_LEVEL'] ?? 'info').trim().toLowerCase();
+  if (!(LOG_LEVELS as readonly string[]).includes(value)) {
+    throw new Error(`LOG_LEVEL must be one of ${LOG_LEVELS.join(', ')} (got "${value}")`);
+  }
+  return value as LogLevel;
+}
+
 export function loadConfig(): Config {
   const webhookSecret = process.env['WEBHOOK_SECRET'];
   const webhookSigningToken = process.env['WEBHOOK_SIGNING_TOKEN'];
@@ -58,5 +69,6 @@ export function loadConfig(): Config {
     anthropicModel: process.env['ANTHROPIC_MODEL'] ?? 'claude-sonnet-4-6',
     gitlabRejectUnauthorized: process.env['GITLAB_REJECT_UNAUTHORIZED'] !== 'false',
     gitlabCaCertificate: loadGitlabCaCertificate(),
+    logLevel: loadLogLevel(),
   };
 }

@@ -245,8 +245,23 @@ At least one of `WEBHOOK_SECRET` or `WEBHOOK_SIGNING_TOKEN` must be set. The sig
 | `GITLAB_CA_FILE`             | No       | —                   | Path to a PEM CA certificate (or bundle) to trust for GitLab, for a private or self-signed CA        |
 | `GITLAB_REJECT_UNAUTHORIZED` | No       | `true`              | Set to `false` to skip TLS verification for GitLab. Last resort — use `GITLAB_CA_FILE` instead       |
 | `PORT`                       | No       | `3000`              | Port the server listens on                                                                           |
+| `LOG_LEVEL`                  | No       | `info`              | `fatal`, `error`, `warn`, `info`, `debug`, `trace` or `silent`. See [Logging](#logging)              |
 
 ¹ At least one of `WEBHOOK_SECRET` or `WEBHOOK_SIGNING_TOKEN` is required.
+
+### Logging
+
+Glint writes one JSON object per line to stdout, ready for Docker, Loki, Elasticsearch or any other log collector. Each line has `level`, `time` (ISO 8601), `service` and `msg`, plus fields for the event being handled, such as `projectId`, `mrIid` or `tag`, and `durationMs` when processing finishes:
+
+```json
+{"level":"info","time":"2026-11-14T20:15:02.311Z","service":"glint","event":"merge_request","projectId":12,"mrIid":42,"durationMs":8423,"msg":"Posted AI summary"}
+```
+
+- `warn` logs only problems: rejected webhooks (bad token or signature, invalid payload) and failed processing.
+- `info` (the default) adds startup and each event processed with its outcome.
+- `debug` also logs webhooks that were ignored (unhandled event types and actions).
+
+Errors from GitLab API calls are logged as a one-line description (method, path, status, message), never with request headers, so `GITLAB_TOKEN` stays out of the logs. For readable output while developing, pipe the logs through [pino-pretty](https://github.com/pinojs/pino-pretty): `npm run dev | npx pino-pretty`.
 
 ### GitLab with a private or self-signed CA
 

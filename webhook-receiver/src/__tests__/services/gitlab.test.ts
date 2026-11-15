@@ -21,6 +21,7 @@ const config: Config = {
   anthropicApiKey: 'test-key',
   anthropicModel: 'claude-sonnet-4-6',
   gitlabRejectUnauthorized: false,
+  logLevel: 'silent',
 };
 
 describe('createGitlabClient', () => {
