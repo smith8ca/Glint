@@ -2,6 +2,8 @@
 
 Thanks for your interest in contributing! This guide will help you get set up and submit your first pull request.
 
+By taking part in this project you agree to follow its [code of conduct](CODE_OF_CONDUCT.md).
+
 ---
 
 ## Getting started
@@ -111,9 +113,11 @@ Be aware that each test run will consume Anthropic API credits.
 
 ## Reporting bugs and requesting features
 
-Please open an issue on the project repository. Include:
+Please [open an issue](https://github.com/smith8ca/Glint/issues/new/choose) and pick the matching form:
 
-- **Bug reports**: steps to reproduce, expected behaviour, actual behaviour, and any relevant logs or error messages.
+- **Bug reports**: steps to reproduce, expected behaviour, actual behaviour, and any relevant logs or error messages (with tokens and internal hostnames removed).
 - **Feature requests**: the problem you are trying to solve, your proposed solution, and any alternatives you considered.
+
+Security problems don't belong in public issues: see [SECURITY.md](SECURITY.md).
 
 No contributor licence agreement is required. Contributions are welcome from anyone.

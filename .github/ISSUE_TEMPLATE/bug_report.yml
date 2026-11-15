@@ -1,0 +1,57 @@
+name: Bug report
+description: Something in Glint doesn't work as documented
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. Please check [Troubleshooting](https://github.com/smith8ca/Glint/wiki/Troubleshooting) first.
+        **Security problems:** don't file them here. See [SECURITY.md](https://github.com/smith8ca/Glint/blob/main/SECURITY.md).
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What you did, what you expected, and what happened instead.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Glint version
+      description: Image tag (for example v0.1.18) or commit SHA.
+      placeholder: v0.1.18
+    validations:
+      required: true
+  - type: dropdown
+    id: run-mode
+    attributes:
+      label: How do you run Glint?
+      options:
+        - Docker / Docker Compose
+        - From source (npm)
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: gitlab-version
+    attributes:
+      label: GitLab version
+      description: For example "GitLab CE 18.4, self-hosted".
+  - type: dropdown
+    id: event
+    attributes:
+      label: Which feature?
+      options:
+        - Merge request summary
+        - Release notes
+        - Webhook authentication
+        - Startup / configuration
+        - Other
+  - type: textarea
+    id: logs
+    attributes:
+      label: Log output
+      description: |
+        Relevant Glint log lines, and the response GitLab shows under Settings → Webhooks → Edit → Recent events.
+        **Remove tokens, API keys and internal hostnames before pasting.**
+      render: shell

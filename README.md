@@ -1,5 +1,7 @@
 # Glint
 
+[![Release build](https://github.com/smith8ca/Glint/actions/workflows/release.yml/badge.svg?branch=main)](https://github.com/smith8ca/Glint/actions/workflows/release.yml)
+[![Latest release](https://img.shields.io/github/v/release/smith8ca/Glint?sort=semver)](https://github.com/smith8ca/Glint/releases/latest)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Node.js ≥22](https://img.shields.io/badge/node-%3E%3D22-339933?logo=node.js&logoColor=white)](https://nodejs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
