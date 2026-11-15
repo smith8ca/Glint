@@ -6,6 +6,21 @@ import type { Config } from '../../config';
 vi.mock('../../services/gitlab');
 vi.mock('../../services/claude');
 
+// A stand-in for the pino logger; child() returns the same object so every
+// log call made by the route, with or without context, lands here.
+const mockLog = vi.hoisted(() => {
+  const log = {
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    debug: vi.fn(),
+    child: vi.fn(),
+  };
+  log.child.mockImplementation(() => log);
+  return log;
+});
+vi.mock('../../logger', () => ({ logger: mockLog }));
+
 import { createGitlabClient } from '../../services/gitlab';
 import { createClaudeClient } from '../../services/claude';
 
@@ -17,6 +32,7 @@ const config: Config = {
   anthropicApiKey: 'test-key',
   anthropicModel: 'claude-sonnet-4-6',
   gitlabRejectUnauthorized: false,
+  logLevel: 'silent',
 };
 
 const mockGitlab = {
@@ -150,14 +166,34 @@ describe('POST /webhook — Merge Request Hook', () => {
   it('logs error when async MR processing fails', async () => {
     mockGitlab.getMRDetails.mockRejectedValue(new Error('GitLab down'));
     mockGitlab.getMRDiffs.mockResolvedValue([]);
-    const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
     const app = createApp(config);
     await request(app).post('/webhook').set(MR_EVENT).send(MR_PAYLOAD);
     await flushPromises();
 
-    expect(spy).toHaveBeenCalled();
-    spy.mockRestore();
+    expect(mockLog.child).toHaveBeenCalledWith({ event: 'merge_request', projectId: 1, mrIid: 42 });
+    expect(mockLog.error).toHaveBeenCalledWith(
+      { error: 'GitLab down' },
+      'Failed to process merge request'
+    );
+  });
+
+  it('logs the outcome with structured fields when an MR is summarized', async () => {
+    mockGitlab.getMRDetails.mockResolvedValue({});
+    mockGitlab.getMRDiffs.mockResolvedValue([{}, {}]);
+    mockClaude.summarizeMR.mockResolvedValue('Summary.');
+    mockGitlab.postMRNote.mockResolvedValue(undefined);
+
+    const app = createApp(config);
+    await request(app).post('/webhook').set(MR_EVENT).send(MR_PAYLOAD);
+    await flushPromises();
+
+    expect(mockLog.info).toHaveBeenCalledWith({ diffs: 2 }, 'Sending diffs to Claude');
+    expect(mockLog.info).toHaveBeenCalledWith(
+      { durationMs: expect.any(Number) },
+      'Posted AI summary'
+    );
+    expect(mockLog.error).not.toHaveBeenCalled();
   });
 });
 
@@ -230,14 +266,13 @@ describe('POST /webhook — Release Hook', () => {
 
   it('logs error when async release processing fails', async () => {
     mockGitlab.getReleases.mockRejectedValue(new Error('API error'));
-    const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
     const app = createApp(config);
     await request(app).post('/webhook').set(REL_EVENT).send(RELEASE_PAYLOAD);
     await flushPromises();
 
-    expect(spy).toHaveBeenCalled();
-    spy.mockRestore();
+    expect(mockLog.child).toHaveBeenCalledWith({ event: 'release', projectId: 1, tag: 'v1.0.0' });
+    expect(mockLog.error).toHaveBeenCalledWith({ error: 'API error' }, 'Failed to process release');
   });
 });
 
@@ -302,16 +337,14 @@ describe('POST /webhook — error logging', () => {
       })
     );
     mockGitlab.getMRDiffs.mockResolvedValue([]);
-    const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
     const app = createApp(config);
     await request(app).post('/webhook').set(MR_EVENT).send(MR_PAYLOAD);
     await flushPromises();
 
-    expect(spy).toHaveBeenCalledOnce();
-    const logged = spy.mock.calls.flat().map(String).join(' ');
+    expect(mockLog.error).toHaveBeenCalledOnce();
+    const logged = JSON.stringify(mockLog.error.mock.calls);
     expect(logged).toContain('failed with status 500');
     expect(logged).not.toContain('test-token');
-    spy.mockRestore();
   });
 });

@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { createHash, createHmac, timingSafeEqual } from 'node:crypto';
 import { Config } from '../config';
+import { logger } from '../logger';
 
 const FIVE_MINUTES_MS = 5 * 60 * 1000;
 const WHSEC_PREFIX = 'whsec_';
@@ -67,10 +68,12 @@ export function validateSecret(config: Config) {
   return (req: Request, res: Response, next: NextFunction): void => {
     if (config.webhookSigningToken) {
       if (!verifySigningToken(config.webhookSigningToken, req as RawBodyRequest)) {
+        logger.warn({ ip: req.ip, auth: 'signing-token' }, 'Rejected webhook: invalid signature');
         res.status(401).json({ error: 'Unauthorized: invalid webhook signature' });
         return;
       }
     } else if (!verifyLegacySecret(config.webhookSecret, req.headers['x-gitlab-token'])) {
+      logger.warn({ ip: req.ip, auth: 'secret-token' }, 'Rejected webhook: invalid token');
       res.status(401).json({ error: 'Unauthorized: invalid webhook token' });
       return;
     }
