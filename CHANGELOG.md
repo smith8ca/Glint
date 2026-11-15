@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+---
+
+## [0.1.20] - 2026-11-15
+
 ### Added
 
 - **OpenAI-compatible AI provider.** Set `AI_PROVIDER=openai-compatible` to write summaries and release notes with any server that implements the OpenAI Chat Completions API: OpenAI, a local [Ollama](https://ollama.com/) server (nothing leaves your network), LM Studio, vLLM, OpenRouter or Gemini's OpenAI-compatible endpoint. Configured with `OPENAI_BASE_URL` (default `https://api.openai.com/v1`), `OPENAI_MODEL` (required) and `OPENAI_API_KEY` (optional). Tested against Ollama
@@ -256,7 +260,8 @@ Released as a series of automated patch versions (v0.1.2 through v0.1.6) via the
 
 ---
 
-[Unreleased]: https://github.com/smith8ca/Glint/compare/v0.1.19...HEAD
+[Unreleased]: https://github.com/smith8ca/Glint/compare/v0.1.20...HEAD
+[0.1.20]: https://github.com/smith8ca/Glint/compare/v0.1.19...v0.1.20
 [0.1.19]: https://github.com/smith8ca/Glint/compare/v0.1.18...v0.1.19
 [0.1.18]: https://github.com/smith8ca/Glint/compare/v0.1.17...v0.1.18
 [0.1.17]: https://github.com/smith8ca/Glint/compare/v0.1.16...v0.1.17
