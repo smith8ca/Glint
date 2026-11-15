@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- GitHub issue forms (bug report, feature request) and a pull request template
+- `CODE_OF_CONDUCT.md`, adopting the Contributor Covenant 2.1
+- Dependabot configuration for npm, GitHub Actions and the Docker base image, opening weekly update pull requests against `dev`
+- README badges for the release build and the latest release
+
 ---
 
 ## [0.1.18] - 2026-11-15
