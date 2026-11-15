@@ -9,6 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Structured logging with [pino](https://github.com/pinojs/pino): one JSON object per line on stdout, with `level`, ISO `time`, `service`, `msg` and per-event fields (`event`, `projectId`, `mrIid` or `tag`, `durationMs`). Rejected webhooks (bad token or signature, invalid payload) are logged at `warn`, ignored events at `debug`
+- `LOG_LEVEL` option (`fatal`, `error`, `warn`, `info`, `debug`, `trace`, `silent`; default `info`), validated at startup
+- `SECURITY.md` with the vulnerability reporting policy (GitHub private vulnerability reporting; only the latest release is supported)
+- `npm run typecheck` type-checks the source and the tests; CI runs it before the build
+
+### Changed
+
+- **Log format.** Logs are now JSON lines instead of plain text such as `[webhook] Posted AI summary to MR !42`. Update anything that parses or greps the old format. For readable output while developing, pipe through `npx pino-pretty`
+- `@anthropic-ai/sdk` upgraded from 0.36 to 1.8, which uses Claude API version `2026-10-21` and sends the API key as `Authorization: Bearer`. No configuration change is needed. Clears the last npm deprecation warning (`node-domexception`). The SDK is now licensed under Apache-2.0
+
+### Fixed
+
+- The Docker image no longer ships the compiled unit tests: the build uses `tsconfig.build.json`, which excludes `src/**/__tests__/**`
+- `.gitlab-ci.yml`: the `release` job no longer cuts a duplicate patch release when the `main` commit already has a `vX.Y.Z` tag (same fix as `release.yml` got in 0.1.16)
+
 ---
 
 ## [0.1.17] - 2026-11-14
