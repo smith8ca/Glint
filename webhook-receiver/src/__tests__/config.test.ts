@@ -87,6 +87,67 @@ describe('loadConfig', () => {
     expect(loadConfig().anthropicModel).toBe('claude-haiku-4-5');
   });
 
+  describe('AI_PROVIDER', () => {
+    it('defaults to anthropic', () => {
+      const config = loadConfig();
+      expect(config.aiProvider).toBe('anthropic');
+      expect(config.openaiBaseUrl).toBe('https://api.openai.com/v1');
+      expect(config.openaiModel).toBeUndefined();
+      expect(config.openaiApiKey).toBeUndefined();
+    });
+
+    it('throws for an unknown provider', () => {
+      process.env['AI_PROVIDER'] = 'gemini';
+      expect(() => loadConfig()).toThrow('AI_PROVIDER must be one of');
+    });
+
+    it('needs OPENAI_MODEL but no Anthropic key for openai-compatible', () => {
+      process.env['AI_PROVIDER'] = 'OpenAI-Compatible';
+      delete process.env['ANTHROPIC_API_KEY'];
+      expect(() => loadConfig()).toThrow('Missing required environment variable: OPENAI_MODEL');
+
+      process.env['OPENAI_MODEL'] = 'llama3.2';
+      const config = loadConfig();
+      expect(config.aiProvider).toBe('openai-compatible');
+      expect(config.openaiModel).toBe('llama3.2');
+      expect(config.anthropicApiKey).toBeUndefined();
+    });
+
+    it('reads the OpenAI-compatible settings and trims trailing slashes from the URL', () => {
+      process.env['AI_PROVIDER'] = 'openai-compatible';
+      process.env['OPENAI_MODEL'] = 'llama3.2';
+      process.env['OPENAI_BASE_URL'] = 'http://localhost:11434/v1//';
+      process.env['OPENAI_API_KEY'] = 'test-openai-key';
+      const config = loadConfig();
+      expect(config.openaiBaseUrl).toBe('http://localhost:11434/v1');
+      expect(config.openaiApiKey).toBe('test-openai-key');
+    });
+
+    it.each([['not a url'], ['ftp://example.com/v1']])(
+      'throws for OPENAI_BASE_URL "%s"',
+      (value) => {
+        process.env['OPENAI_BASE_URL'] = value;
+        expect(() => loadConfig()).toThrow('OPENAI_BASE_URL');
+      }
+    );
+  });
+
+  describe('MAX_DIFF_CHARS', () => {
+    it('defaults to 20000', () => {
+      expect(loadConfig().maxDiffChars).toBe(20_000);
+    });
+
+    it('accepts a custom value', () => {
+      process.env['MAX_DIFF_CHARS'] = '6000';
+      expect(loadConfig().maxDiffChars).toBe(6000);
+    });
+
+    it.each([['abc'], ['999'], ['1500.5'], ['-5']])('throws for "%s"', (value) => {
+      process.env['MAX_DIFF_CHARS'] = value;
+      expect(() => loadConfig()).toThrow('MAX_DIFF_CHARS must be a whole number');
+    });
+  });
+
   describe('LOG_LEVEL', () => {
     it('defaults to info', () => {
       expect(loadConfig().logLevel).toBe('info');
