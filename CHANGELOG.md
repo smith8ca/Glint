@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+---
+
+## [0.1.19] - 2026-11-15
+
+No changes to the application; the image is functionally identical to 0.1.18.
+
 ### Added
 
 - GitHub issue forms (bug report, feature request) and a pull request template
@@ -237,7 +243,8 @@ Released as a series of automated patch versions (v0.1.2 through v0.1.6) via the
 
 ---
 
-[Unreleased]: https://github.com/smith8ca/Glint/compare/v0.1.18...HEAD
+[Unreleased]: https://github.com/smith8ca/Glint/compare/v0.1.19...HEAD
+[0.1.19]: https://github.com/smith8ca/Glint/compare/v0.1.18...v0.1.19
 [0.1.18]: https://github.com/smith8ca/Glint/compare/v0.1.17...v0.1.18
 [0.1.17]: https://github.com/smith8ca/Glint/compare/v0.1.16...v0.1.17
 [0.1.16]: https://github.com/smith8ca/Glint/compare/v0.1.15...v0.1.16
