@@ -10,7 +10,7 @@
 
 ![Glint Banner](assets/png/social-preview.png)
 
-A self-hosted GitLab webhook receiver that automatically posts AI-generated code review summaries on merge requests and generates release notes using Claude (Anthropic). Designed for self-hosted GitLab CE (free tier) — no paid GitLab features required.
+A self-hosted GitLab webhook receiver that automatically posts AI-generated code review summaries on merge requests and generates release notes using Claude (Anthropic) or any OpenAI-compatible model, including local ones served by [Ollama](https://ollama.com/). Designed for self-hosted GitLab CE (free tier) — no paid GitLab features required.
 
 Full documentation — configuration, deployment, security, API reference and troubleshooting — is in the [project wiki](https://github.com/smith8ca/Glint/wiki).
 
@@ -60,7 +60,7 @@ Full documentation — configuration, deployment, security, API reference and tr
 
 ## Prerequisites
 
-- **Anthropic API key** ([get one here](https://console.anthropic.com/))
+- **An AI provider**: an Anthropic API key ([get one here](https://console.anthropic.com/)), or an OpenAI-compatible endpoint such as OpenAI or a local Ollama server (see [AI providers](#ai-providers))
 - **GitLab personal access token** with `api` scope ([create one here](https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html))
 - **Docker** and **Docker Compose** — for the recommended production setup
 - **Node.js v22 or later** — only required if running without Docker
@@ -79,7 +79,10 @@ glint/
 │   │   │   └── health.ts      # GET /health — health check
 │   │   ├── services/
 │   │   │   ├── gitlab.ts      # GitLab API client (fetch MR diffs, commits, post notes/release descriptions)
-│   │   │   └── claude.ts      # Anthropic API client (generate MR summaries and release notes)
+│   │   │   ├── ai.ts          # Picks the AI provider from AI_PROVIDER
+│   │   │   ├── prompts.ts     # Prompts shared by every provider
+│   │   │   ├── claude.ts      # Anthropic API client
+│   │   │   └── openaiCompatible.ts  # OpenAI-compatible client (OpenAI, Ollama, …)
 │   │   └── middleware/
 │   │       └── validateSecret.ts  # Webhook auth: legacy secret token or HMAC-SHA256 signing token
 │   ├── Dockerfile
@@ -228,7 +231,7 @@ npm test
 6. The summary is posted back to the mock server as a note
 7. The test prints the captured note body and exits with code `0`
 
-> The e2e test needs `ANTHROPIC_API_KEY`, `WEBHOOK_SECRET` and a non-empty `GITLAB_TOKEN` (any value; the mock accepts it) in `webhook-receiver/.env`. It authenticates with the secret token, so comment out `WEBHOOK_SIGNING_TOKEN` while running it.
+> The e2e test needs `ANTHROPIC_API_KEY`, `WEBHOOK_SECRET` and a non-empty `GITLAB_TOKEN` (any value; the mock accepts it) in `webhook-receiver/.env`. It authenticates with the secret token, so comment out `WEBHOOK_SIGNING_TOKEN` while running it. To test another provider, set its variables in `.env` or in the shell, for example `AI_PROVIDER=openai-compatible OPENAI_BASE_URL=http://localhost:11434/v1 OPENAI_MODEL=llama3.2 npm test` (no Anthropic key is needed then; raise `NOTE_TIMEOUT_MS` for slow local models).
 
 ## Environment variables
 
@@ -242,14 +245,60 @@ At least one of `WEBHOOK_SECRET` or `WEBHOOK_SIGNING_TOKEN` must be set. The sig
 | `GITLAB_TOKEN`               | Yes      | —                   | GitLab personal access token with `api` scope                                                        |
 | `WEBHOOK_SECRET`             | One of¹  | —                   | Legacy secret token — matched against the `X-Gitlab-Token` header                                    |
 | `WEBHOOK_SIGNING_TOKEN`      | One of¹  | —                   | HMAC-SHA256 signing token (GitLab 19.0+, `whsec_…`). Verifies payload integrity and prevents replays |
-| `ANTHROPIC_API_KEY`          | Yes      | —                   | Anthropic API key for Claude                                                                         |
+| `AI_PROVIDER`                | No       | `anthropic`         | `anthropic` or `openai-compatible`. See [AI providers](#ai-providers)                                |
+| `ANTHROPIC_API_KEY`          | Yes²     | —                   | Anthropic API key for Claude                                                                         |
 | `ANTHROPIC_MODEL`            | No       | `claude-sonnet-4-6` | Claude model to use for summaries and release notes                                                  |
 | `GITLAB_CA_FILE`             | No       | —                   | Path to a PEM CA certificate (or bundle) to trust for GitLab, for a private or self-signed CA        |
 | `GITLAB_REJECT_UNAUTHORIZED` | No       | `true`              | Set to `false` to skip TLS verification for GitLab. Last resort — use `GITLAB_CA_FILE` instead       |
+| `OPENAI_BASE_URL`            | No       | `https://api.openai.com/v1` | Base URL of the OpenAI-compatible API, including its `/v1` path                              |
+| `OPENAI_MODEL`               | Yes³     | —                   | Model name to request, for example `gpt-4o-mini` or `llama3.2`                                       |
+| `OPENAI_API_KEY`             | No       | —                   | API key, sent as a bearer token. Leave unset for servers that need none, such as Ollama              |
+| `MAX_DIFF_CHARS`             | No       | `20000`             | Most characters of diff sent to the model (minimum 1000). Lower it for models with a small context   |
 | `PORT`                       | No       | `3000`              | Port the server listens on                                                                           |
 | `LOG_LEVEL`                  | No       | `info`              | `fatal`, `error`, `warn`, `info`, `debug`, `trace` or `silent`. See [Logging](#logging)              |
 
 ¹ At least one of `WEBHOOK_SECRET` or `WEBHOOK_SIGNING_TOKEN` is required.
+² Required when `AI_PROVIDER` is `anthropic` (the default).
+³ Required when `AI_PROVIDER` is `openai-compatible`.
+
+### AI providers
+
+Glint writes its summaries with Claude by default. Set `AI_PROVIDER=openai-compatible` to use any server that implements the OpenAI Chat Completions API instead. Both providers get the same prompts.
+
+**Anthropic (default)**
+
+```dotenv
+ANTHROPIC_API_KEY=sk-ant-xxxxxxxxxxxxxxxxxxxx
+# ANTHROPIC_MODEL=claude-sonnet-4-6
+```
+
+**Ollama (local, nothing leaves your network)**
+
+```dotenv
+AI_PROVIDER=openai-compatible
+OPENAI_BASE_URL=http://localhost:11434/v1
+OPENAI_MODEL=llama3.2
+# Local models often have a small context window; send less diff
+MAX_DIFF_CHARS=8000
+```
+
+If Glint runs in Docker and Ollama on the host, use `http://host.docker.internal:11434/v1` (on Linux, add `extra_hosts: ["host.docker.internal:host-gateway"]` to the service). Pull the model first with `ollama pull llama3.2`.
+
+**OpenAI**
+
+```dotenv
+AI_PROVIDER=openai-compatible
+OPENAI_API_KEY=sk-xxxxxxxxxxxxxxxxxxxx
+OPENAI_MODEL=gpt-4o-mini
+```
+
+**Other compatible services** use the same three settings with their own base URL, for example Google Gemini (`https://generativelanguage.googleapis.com/v1beta/openai`), OpenRouter (`https://openrouter.ai/api/v1`), LM Studio or vLLM. Only Anthropic and Ollama are tested by the maintainers; the others should work if they accept a bearer API key and a standard `POST /chat/completions` request.
+
+Things to know:
+
+- **Quality varies with the model.** Small local models write weaker summaries than Claude or other large hosted models, and are slower without a GPU. Requests time out after five minutes.
+- **No output limit is sent** to OpenAI-compatible servers, because the parameter's name differs between them. The prompts ask for concise output.
+- **Diffs larger than `MAX_DIFF_CHARS` are cut off**, and the model is told so. If summaries from a local model ignore later files or come back empty, lower the value or raise the model's context window.
 
 ### Logging
 
@@ -345,11 +394,11 @@ To report a vulnerability, see [SECURITY.md](SECURITY.md). Please don't open a p
 - **Webhook authentication** — every request must carry a valid `X-Gitlab-Token` or HMAC signature (`WEBHOOK_SIGNING_TOKEN`, recommended). Both are verified in constant time, and signed requests older than five minutes are rejected.
 - **Token scope** — `GITLAB_TOKEN` can post notes and edit releases on every project it can access. Use a dedicated bot account or a project/group access token limited to the projects you want reviewed.
 - **Prompt injection** — MR titles, descriptions, diffs and commit messages are sent to Claude verbatim. Anyone who can open an MR can influence the generated summary or release notes. Glint gives Claude no tools and only posts text, so the impact is limited to misleading content, but treat AI output as untrusted and review it before relying on it.
-- **Data sent to Anthropic** — MR and release content (including code diffs) leaves your network for the Anthropic API. Don't enable Glint on projects whose code must not be shared with a third-party AI provider.
+- **Data sent to the AI provider** — MR and release content (including code diffs) is sent to the configured provider: the Anthropic API by default, or the server at `OPENAI_BASE_URL`. Don't use a hosted provider on projects whose code must not be shared with a third party; a local model (see [AI providers](#ai-providers)) keeps it on your network. If `OPENAI_BASE_URL` uses plain `http://`, keep it to localhost or a trusted network, since the diff and any API key travel unencrypted.
 - **TLS** — keep `GITLAB_REJECT_UNAUTHORIZED` at its default (`true`). For a private CA, trust it with `GITLAB_CA_FILE` (see [GitLab with a private or self-signed CA](#gitlab-with-a-private-or-self-signed-ca)) instead of disabling verification.
 
 ## AI attribution
 
 Glint was built with AI assistance. Much of the code, tests, CI configuration, and documentation in this repository was written in collaboration with [Claude Code](https://claude.com/claude-code), Anthropic's AI coding assistant, and then reviewed, tested, and maintained by a human. Commits produced with AI assistance carry a `Co-Authored-By: Claude` trailer.
 
-This is separate from Glint's runtime use of AI: the webhook receiver calls the [Anthropic Claude API](https://docs.anthropic.com/) to write MR summaries and release notes. That output is always labelled as AI-generated in GitLab and should be reviewed before you rely on it.
+This is separate from Glint's runtime use of AI: the webhook receiver calls the [Anthropic Claude API](https://docs.anthropic.com/), or the OpenAI-compatible model you configure, to write MR summaries and release notes. That output is always labelled as AI-generated in GitLab and should be reviewed before you rely on it.

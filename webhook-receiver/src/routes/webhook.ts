@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import { Config } from '../config';
 import { validateSecret } from '../middleware/validateSecret';
 import { createGitlabClient } from '../services/gitlab';
-import { createClaudeClient } from '../services/claude';
+import { createAiClient } from '../services/ai';
 import { describeError } from '../utils/errors';
 import { logger } from '../logger';
 
@@ -45,7 +45,7 @@ function isValidTagName(value: unknown): value is string {
 export function webhookRouter(config: Config): Router {
   const router = Router();
   const gitlab = createGitlabClient(config);
-  const claude = createClaudeClient(config);
+  const ai = createAiClient(config);
 
   router.post('/', validateSecret(config), (req: Request, res: Response): void => {
     const event = req.headers['x-gitlab-event'];
@@ -95,8 +95,8 @@ export function webhookRouter(config: Config): Router {
         gitlab.getMRDiffs(projectId, mrIid),
       ]);
 
-      log.info({ diffs: diffs.length }, 'Sending diffs to Claude');
-      const summary = await claude.summarizeMR(details, diffs);
+      log.info({ diffs: diffs.length }, 'Sending diffs to the AI provider');
+      const summary = await ai.summarizeMR(details, diffs);
 
       const noteBody = [
         '## AI-Generated MR Summary',
@@ -168,8 +168,8 @@ export function webhookRouter(config: Config): Router {
         diffs = [];
       }
 
-      log.info({ commits: commits.length, diffs: diffs.length }, 'Sending commits and diffs to Claude');
-      const notes = await claude.generateReleaseNotes(
+      log.info({ commits: commits.length, diffs: diffs.length }, 'Sending commits and diffs to the AI provider');
+      const notes = await ai.generateReleaseNotes(
         releaseName,
         tagName,
         prevTagName,
