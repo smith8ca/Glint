@@ -50,6 +50,11 @@ export function createApp(config: Config): Express {
   app.use('/health', healthRouter());
   app.use('/webhook', webhookRouter(config));
 
+  // Unknown routes get JSON too, like every other response.
+  app.use((_req, res) => {
+    res.status(404).json({ error: 'Not Found' });
+  });
+
   // Must be registered last so it catches errors from everything above.
   app.use(errorHandler);
 

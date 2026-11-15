@@ -8,6 +8,10 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
+    ignore:
+      # The types must match the Node major the project runs on (see engines.node).
+      - dependency-name: '@types/node'
+        update-types: ['version-update:semver-major']
     groups:
       # One pull request for all minor and patch updates; majors come separately.
       minor-and-patch:
@@ -19,6 +23,10 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
+    ignore:
+      # The types must match the Node major the project runs on (see engines.node).
+      - dependency-name: '@types/node'
+        update-types: ['version-update:semver-major']
     groups:
       minor-and-patch:
         update-types: [minor, patch]

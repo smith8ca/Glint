@@ -61,7 +61,8 @@ export function webhookRouter(config: Config): Router {
   });
 
   function handleMergeRequest(req: Request, res: Response): void {
-    const payload = req.body as MRPayload;
+    // Express 5 leaves req.body undefined when no JSON body was sent.
+    const payload = (req.body ?? {}) as MRPayload;
     if (payload.object_kind !== 'merge_request') {
       res.status(200).json({ message: 'Ignored: not a merge_request event' });
       return;
@@ -115,7 +116,7 @@ export function webhookRouter(config: Config): Router {
   }
 
   function handleRelease(req: Request, res: Response): void {
-    const payload = req.body as ReleasePayload;
+    const payload = (req.body ?? {}) as ReleasePayload;
     if (payload.object_kind !== 'release') {
       res.status(200).json({ message: 'Ignored: not a release event' });
       return;
