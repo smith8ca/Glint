@@ -94,6 +94,10 @@ Release notes work the same way: when a GitLab release is created, Glint replace
 
 ## How it works
 
+![Glint architecture: GitLab CE sends a webhook to the Glint container, which fetches the diff, calls the configured AI provider and posts the result back](assets/png/architecture.png)
+
+The diagram source is [assets/architecture-diagram.html](assets/architecture-diagram.html).
+
 **Merge request review**
 
 1. A merge request is opened or reopened in GitLab

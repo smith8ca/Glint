@@ -11,6 +11,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.1.22] - 2026-11-15
+
+### Changed
+
+- Architecture diagram redrawn to show the choice of AI provider (Claude, a local model, or a hosted OpenAI-compatible API), the network boundary and the numbered request flow. It is now also shown in the README as `assets/png/architecture.png`
+
+---
+
 ## [0.1.21] - 2026-11-15
 
 ### Security
@@ -281,7 +289,8 @@ Released as a series of automated patch versions (v0.1.2 through v0.1.6) via the
 
 ---
 
-[Unreleased]: https://github.com/smith8ca/Glint/compare/v0.1.21...HEAD
+[Unreleased]: https://github.com/smith8ca/Glint/compare/v0.1.22...HEAD
+[0.1.22]: https://github.com/smith8ca/Glint/compare/v0.1.21...v0.1.22
 [0.1.21]: https://github.com/smith8ca/Glint/compare/v0.1.20...v0.1.21
 [0.1.20]: https://github.com/smith8ca/Glint/compare/v0.1.19...v0.1.20
 [0.1.19]: https://github.com/smith8ca/Glint/compare/v0.1.18...v0.1.19
