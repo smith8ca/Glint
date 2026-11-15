@@ -204,6 +204,7 @@ The webhook receiver has a Vitest unit test suite (99% coverage) covering the Ex
 cd webhook-receiver
 npm test              # run once
 npm run test:coverage # run with an LCOV coverage report
+npm run typecheck     # type-check source and tests (the build skips tests)
 ```
 
 ## Running the end-to-end test

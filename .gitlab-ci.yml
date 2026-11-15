@@ -50,6 +50,7 @@ typecheck:
     - cd webhook-receiver
     - npm ci
   script:
+    - npm run typecheck
     - npm run build
   artifacts:
     paths:
