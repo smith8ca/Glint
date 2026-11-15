@@ -323,6 +323,8 @@ Releases are automatic and patch-level: every push to `main` reads the latest `v
 
 ## Security considerations
 
+To report a vulnerability, see [SECURITY.md](SECURITY.md). Please don't open a public issue.
+
 - **Webhook authentication** — every request must carry a valid `X-Gitlab-Token` or HMAC signature (`WEBHOOK_SIGNING_TOKEN`, recommended). Both are verified in constant time, and signed requests older than five minutes are rejected.
 - **Token scope** — `GITLAB_TOKEN` can post notes and edit releases on every project it can access. Use a dedicated bot account or a project/group access token limited to the projects you want reviewed.
 - **Prompt injection** — MR titles, descriptions, diffs and commit messages are sent to Claude verbatim. Anyone who can open an MR can influence the generated summary or release notes. Glint gives Claude no tools and only posts text, so the impact is limited to misleading content, but treat AI output as untrusted and review it before relying on it.
