@@ -41,7 +41,13 @@ Full documentation — configuration, deployment, security, API reference and tr
 
 ## Example output
 
-This is the comment Glint posted on a sample merge request that adds JWT authentication to an Express app (the fixture used by the [end-to-end test](#running-the-end-to-end-test)), written by `claude-sonnet-4-6`. Nothing was edited.
+A Glint comment as it appears in GitLab, on an early merge request that added Glint's own unit test suite:
+
+<p align="center">
+  <img src="assets/png/example-mr-comment.png" alt="Screenshot of a GitLab merge request comment written by Glint, with a summary, a list of key changes and review notes" width="600">
+</p>
+
+And as text: this is the comment Glint posted on a sample merge request that adds JWT authentication to an Express app (the fixture used by the [end-to-end test](#running-the-end-to-end-test)), written by `claude-sonnet-4-6`. Nothing was edited.
 
 <details>
 <summary><strong>Show the generated MR summary</strong></summary>
