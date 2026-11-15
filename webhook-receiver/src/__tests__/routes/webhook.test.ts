@@ -4,7 +4,7 @@ import { createApp } from '../../app';
 import type { Config } from '../../config';
 
 vi.mock('../../services/gitlab');
-vi.mock('../../services/claude');
+vi.mock('../../services/ai');
 
 // A stand-in for the pino logger; child() returns the same object so every
 // log call made by the route, with or without context, lands here.
@@ -22,14 +22,17 @@ const mockLog = vi.hoisted(() => {
 vi.mock('../../logger', () => ({ logger: mockLog }));
 
 import { createGitlabClient } from '../../services/gitlab';
-import { createClaudeClient } from '../../services/claude';
+import { createAiClient } from '../../services/ai';
 
 const config: Config = {
   port: 3000,
   gitlabBaseUrl: 'https://gitlab.example.com',
   gitlabToken: 'test-token',
   webhookSecret: 'test-secret',
+  aiProvider: 'anthropic',
   anthropicApiKey: 'test-key',
+  openaiBaseUrl: 'https://api.openai.com/v1',
+  maxDiffChars: 20_000,
   anthropicModel: 'claude-sonnet-4-6',
   gitlabRejectUnauthorized: false,
   logLevel: 'silent',
@@ -45,7 +48,7 @@ const mockGitlab = {
   updateRelease: vi.fn(),
 };
 
-const mockClaude = {
+const mockAi = {
   summarizeMR: vi.fn(),
   generateReleaseNotes: vi.fn(),
 };
@@ -53,7 +56,7 @@ const mockClaude = {
 beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(createGitlabClient).mockReturnValue(mockGitlab as ReturnType<typeof createGitlabClient>);
-  vi.mocked(createClaudeClient).mockReturnValue(mockClaude as ReturnType<typeof createClaudeClient>);
+  vi.mocked(createAiClient).mockReturnValue(mockAi as ReturnType<typeof createAiClient>);
 });
 
 function flushPromises(): Promise<void> {
@@ -135,7 +138,7 @@ describe('POST /webhook — Merge Request Hook', () => {
       author: { name: 'Alice', username: 'alice' }, web_url: '',
     });
     mockGitlab.getMRDiffs.mockResolvedValue([]);
-    mockClaude.summarizeMR.mockResolvedValue('Great summary!');
+    mockAi.summarizeMR.mockResolvedValue('Great summary!');
     mockGitlab.postMRNote.mockResolvedValue(undefined);
 
     const app = createApp(config);
@@ -145,14 +148,14 @@ describe('POST /webhook — Merge Request Hook', () => {
     await flushPromises();
     expect(mockGitlab.getMRDetails).toHaveBeenCalledWith(1, 42);
     expect(mockGitlab.getMRDiffs).toHaveBeenCalledWith(1, 42);
-    expect(mockClaude.summarizeMR).toHaveBeenCalled();
+    expect(mockAi.summarizeMR).toHaveBeenCalled();
     expect(mockGitlab.postMRNote).toHaveBeenCalledWith(1, 42, expect.stringContaining('Great summary!'));
   });
 
   it('returns 202 for MR reopen', async () => {
     mockGitlab.getMRDetails.mockResolvedValue({ iid: 42, title: 'T', description: null, source_branch: 'f', target_branch: 'main', author: { name: 'A', username: 'a' }, web_url: '' });
     mockGitlab.getMRDiffs.mockResolvedValue([]);
-    mockClaude.summarizeMR.mockResolvedValue('Summary.');
+    mockAi.summarizeMR.mockResolvedValue('Summary.');
     mockGitlab.postMRNote.mockResolvedValue(undefined);
 
     const app = createApp(config);
@@ -181,14 +184,14 @@ describe('POST /webhook — Merge Request Hook', () => {
   it('logs the outcome with structured fields when an MR is summarized', async () => {
     mockGitlab.getMRDetails.mockResolvedValue({});
     mockGitlab.getMRDiffs.mockResolvedValue([{}, {}]);
-    mockClaude.summarizeMR.mockResolvedValue('Summary.');
+    mockAi.summarizeMR.mockResolvedValue('Summary.');
     mockGitlab.postMRNote.mockResolvedValue(undefined);
 
     const app = createApp(config);
     await request(app).post('/webhook').set(MR_EVENT).send(MR_PAYLOAD);
     await flushPromises();
 
-    expect(mockLog.info).toHaveBeenCalledWith({ diffs: 2 }, 'Sending diffs to Claude');
+    expect(mockLog.info).toHaveBeenCalledWith({ diffs: 2 }, 'Sending diffs to the AI provider');
     expect(mockLog.info).toHaveBeenCalledWith(
       { durationMs: expect.any(Number) },
       'Posted AI summary'
@@ -221,7 +224,7 @@ describe('POST /webhook — Release Hook', () => {
   it('returns 202 and processes with compareRefs when a previous release exists', async () => {
     mockGitlab.getReleases.mockResolvedValue([{ tag_name: 'v1.0.0' }, { tag_name: 'v0.9.0' }]);
     mockGitlab.compareRefs.mockResolvedValue({ commits: [], diffs: [] });
-    mockClaude.generateReleaseNotes.mockResolvedValue('Release notes!');
+    mockAi.generateReleaseNotes.mockResolvedValue('Release notes!');
     mockGitlab.updateRelease.mockResolvedValue(undefined);
 
     const app = createApp(config);
@@ -239,7 +242,7 @@ describe('POST /webhook — Release Hook', () => {
   it('uses getTagCommits for the first release (no previous tag)', async () => {
     mockGitlab.getReleases.mockResolvedValue([{ tag_name: 'v1.0.0' }]);
     mockGitlab.getTagCommits.mockResolvedValue([]);
-    mockClaude.generateReleaseNotes.mockResolvedValue('First release!');
+    mockAi.generateReleaseNotes.mockResolvedValue('First release!');
     mockGitlab.updateRelease.mockResolvedValue(undefined);
 
     const app = createApp(config);
@@ -254,7 +257,7 @@ describe('POST /webhook — Release Hook', () => {
   it('uses getTagCommits when tag is not found in releases list (index -1)', async () => {
     mockGitlab.getReleases.mockResolvedValue([{ tag_name: 'v0.9.0' }]);
     mockGitlab.getTagCommits.mockResolvedValue([]);
-    mockClaude.generateReleaseNotes.mockResolvedValue('Notes.');
+    mockAi.generateReleaseNotes.mockResolvedValue('Notes.');
     mockGitlab.updateRelease.mockResolvedValue(undefined);
 
     const app = createApp(config);
@@ -312,14 +315,14 @@ describe('POST /webhook — payload validation', () => {
   it('falls back to the tag name when the release name is missing', async () => {
     mockGitlab.getReleases.mockResolvedValue([{ tag_name: 'v1.0.0' }]);
     mockGitlab.getTagCommits.mockResolvedValue([]);
-    mockClaude.generateReleaseNotes.mockResolvedValue('Notes.');
+    mockAi.generateReleaseNotes.mockResolvedValue('Notes.');
     mockGitlab.updateRelease.mockResolvedValue(undefined);
 
     const app = createApp(config);
     await request(app).post('/webhook').set(REL_EVENT).send({ ...RELEASE_PAYLOAD, name: null });
     await flushPromises();
 
-    expect(mockClaude.generateReleaseNotes).toHaveBeenCalledWith('v1.0.0', 'v1.0.0', null, [], []);
+    expect(mockAi.generateReleaseNotes).toHaveBeenCalledWith('v1.0.0', 'v1.0.0', null, [], []);
   });
 });
 

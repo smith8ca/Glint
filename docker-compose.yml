@@ -24,6 +24,12 @@ services:
       ANTHROPIC_API_KEY: your-anthropic-api-key-here
       # Optional: Claude model to use (default: claude-sonnet-4-6)
       ANTHROPIC_MODEL: claude-sonnet-4-6
+      # Alternative: any OpenAI-compatible API, for example a local Ollama server.
+      # Remove the two ANTHROPIC_ lines above and set these instead:
+      # AI_PROVIDER: openai-compatible
+      # OPENAI_BASE_URL: http://host.docker.internal:11434/v1
+      # OPENAI_MODEL: llama3.2
+      # OPENAI_API_KEY: your-api-key-here   # not needed for Ollama
       # Optional: TLS verification for GitLab API calls (default: true).
       # Prefer trusting your CA via GITLAB_CA_FILE over disabling this.
       GITLAB_REJECT_UNAUTHORIZED: "true"

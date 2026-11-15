@@ -63,10 +63,11 @@ Broader deployment options and provider support for teams with more complex need
 
 Allow teams to swap out or extend the AI backend without changing application code.
 
-- Provider abstraction layer: define a common `AIProvider` interface (`summarizeMR`, `generateReleaseNotes`) so providers are interchangeable
-- **OpenAI** provider: support `gpt-4o` and other OpenAI models via the official Node.js SDK; configured with `AI_PROVIDER=openai` and `OPENAI_API_KEY`
+- [x] Provider abstraction layer: a common `AiClient` interface (`summarizeMR`, `generateReleaseNotes`) with shared prompts, selected by `AI_PROVIDER`
+- [x] **OpenAI-compatible** provider (`AI_PROVIDER=openai-compatible`): one client for OpenAI, Ollama, LM Studio, vLLM, OpenRouter and Gemini's OpenAI-compatible endpoint, configured with `OPENAI_BASE_URL`, `OPENAI_MODEL` and `OPENAI_API_KEY`
+- [x] **Ollama** for locally hosted open-source models and fully air-gapped deployments, through the OpenAI-compatible provider
+- [x] `MAX_DIFF_CHARS` to fit the diff to models with a small context window
 - **Azure OpenAI** provider: support deployments hosted on Azure OpenAI Service for teams with existing Azure agreements
-- **Ollama** provider: support locally-hosted open-source LLMs (e.g. Llama 3, Mistral, Gemma) via [Ollama](https://ollama.com/) for fully air-gapped deployments; configured with `AI_PROVIDER=ollama` and `OLLAMA_BASE_URL`
-- **Google Gemini** provider: support Gemini models via the Google AI SDK as an additional hosted option
+- Native **Google Gemini** provider, if the OpenAI-compatible endpoint proves insufficient
 - Per-project provider override: allow different GitLab projects to use different providers or models via configuration
 - Provider capability detection: gracefully handle providers that lack streaming or tool-use features

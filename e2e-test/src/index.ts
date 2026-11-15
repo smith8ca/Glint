@@ -84,16 +84,25 @@ async function run(): Promise<void> {
 
   const receiverConfig = loadReceiverConfig();
   const webhookSecret = receiverConfig['WEBHOOK_SECRET'];
-  const anthropicApiKey = receiverConfig['ANTHROPIC_API_KEY'] ?? process.env['ANTHROPIC_API_KEY'];
+  // The receiver validates its own provider settings; this only gives a clearer
+  // message for the most common mistake. .env takes priority over the shell,
+  // matching how spawnReceiver builds the receiver's environment.
+  const setting = (name: string) => receiverConfig[name] ?? process.env[name];
+  const aiProvider = (setting('AI_PROVIDER') ?? 'anthropic').trim().toLowerCase();
 
   if (!webhookSecret) {
     console.error('[test] ERROR: WEBHOOK_SECRET not found in webhook-receiver/.env');
     process.exit(1);
   }
-  if (!anthropicApiKey) {
+  if (aiProvider === 'anthropic' && !setting('ANTHROPIC_API_KEY')) {
     console.error('[test] ERROR: ANTHROPIC_API_KEY not found in webhook-receiver/.env');
     process.exit(1);
   }
+  if (aiProvider === 'openai-compatible' && !setting('OPENAI_MODEL')) {
+    console.error('[test] ERROR: OPENAI_MODEL not set (required for AI_PROVIDER=openai-compatible)');
+    process.exit(1);
+  }
+  console.log(`[test] AI provider: ${aiProvider}`);
 
   // 1. Start mock GitLab server
   console.log(`[test] Starting mock GitLab server on port ${MOCK_GITLAB_PORT}…`);
